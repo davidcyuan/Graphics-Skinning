@@ -84,6 +84,11 @@ export class SkinningAnimation extends CanvasAnimation {
     this.millis = new Date().getTime();
   }
 
+  //testtt function
+  public test_rotate(): void{
+    this.scene.test_rotate();
+  }
+
   public getScene(): CLoader {
     return this.scene;
   }

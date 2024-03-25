@@ -247,6 +247,11 @@ export class GUI implements IGUI {
    */
   public onKeydown(key: KeyboardEvent): void {
     switch (key.code) {
+      //testtting key
+      case "KeyT": {
+        this.animation.test_rotate();
+        break;
+      }
       case "Digit1": {
         this.animation.setScene("./static/assets/skinning/split_cube.dae");
         break;

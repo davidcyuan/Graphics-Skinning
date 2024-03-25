@@ -234,6 +234,11 @@ class CLoader {
     this.meshes = [];
   }
 
+  //testtt rotate
+  public test_rotate(): void{
+    this.meshes[0].test_rotate();
+  }
+
   public load(callback: Function): void {
     this.loader.load(this.fileLocation, (collada: Collada) => {
       console.log("File loaded successfully");
