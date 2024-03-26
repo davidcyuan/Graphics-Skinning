@@ -15,10 +15,11 @@ import {
   sBackVSText,
   sBackFSText
 } from "./Shaders.js";
-import { Mat4, Vec4, Vec3 } from "../lib/TSM.js";
+import { Mat4, Vec4, Vec3, Quat} from "../lib/TSM.js";
 import { CLoader } from "./AnimationFileLoader.js";
 import { RenderPass } from "../lib/webglutils/RenderPass.js";
 import { Camera } from "../lib/webglutils/Camera.js";
+
 
 export class SkinningAnimation extends CanvasAnimation {
   private gui: GUI;
@@ -85,8 +86,17 @@ export class SkinningAnimation extends CanvasAnimation {
   }
 
   //testtt function
-  public test_rotate(): void{
-    this.scene.test_rotate();
+  public test_rotate(rotation_world: Quat): void{
+    this.scene.test_rotate(rotation_world);
+  }
+  public test_set_endpoint(endpoint_world: Vec3): void{
+    this.scene.test_set_endpoint(endpoint_world);
+  }
+  public get_bone_1_position(): Vec3{
+    return this.scene.get_bone_1_position();
+  }
+  public get_bone_1_end(): Vec3{
+    return this.scene.get_bone_1_end();
   }
 
   public getScene(): CLoader {

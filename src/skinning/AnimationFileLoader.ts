@@ -235,9 +235,19 @@ class CLoader {
   }
 
   //testtt rotate
-  public test_rotate(): void{
-    this.meshes[0].test_rotate();
+  public test_rotate(rotation_world: Quat): void{
+    this.meshes[0].test_rotate(rotation_world);
   }
+  public test_set_endpoint(endpoint_world: Vec3): void{
+    this.meshes[0].test_set_endpoint(endpoint_world);
+  }
+  public get_bone_1_position(): Vec3{
+    return this.meshes[0].bones[1].get_position();
+  }
+  public get_bone_1_end(): Vec3{
+    return this.meshes[0].bones[1].get_endpoint();
+  }
+  
 
   public load(callback: Function): void {
     this.loader.load(this.fileLocation, (collada: Collada) => {

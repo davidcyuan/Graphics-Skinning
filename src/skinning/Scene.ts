@@ -59,17 +59,20 @@ export class Bone {
     this.rotation = bone.rotation.copy();
   }
 
+  public get_position(): Vec3{
+    return this.position.copy();
+  }
   public set_position(position: Vec3): void{
     this.position = position;
   }
-  public get_position(): Vec3{
-    return this.position;
-  }
   public get_rotation(): Quat{
-    return this.rotation;
+    return this.rotation.copy();
   }
   public set_rotation(rotation: Quat): void{
     this.rotation = rotation;
+  }
+  public get_endpoint(): Vec3{
+    return this.endpoint.copy();
   }
   public set_endpoint(endpoint: Vec3): void{
     this.endpoint = endpoint;
@@ -99,20 +102,8 @@ export class Mesh {
     mesh.bones.forEach(bone => {
       let pushed_bone: Bone = new Bone(bone)
       // if(bone_count == 1){
-      //   //rotate on the z axis
-      //   let axis: Vec3 = new Vec3([1, 0, 0]);
-      //   let angle: number = Math.PI / 4;
-      //   let R: Quat = Quat.fromAxisAngle(axis, angle);
-      //   let bone_R: Quat = pushed_bone.get_rotation();
-      //   let composed_R: Quat = new Quat();
-      //   R.multiply(bone_R, composed_R);
-
-      //   let bone_position: Vec3 = pushed_bone.get_position();
-      //   bone_position.x = bone_position.x + 1;
-      //   pushed_bone.set_position(bone_position);
-
-      //   pushed_bone.set_rotation(composed_R);
-
+      //   let new_position: Vec3 = new Vec3([0,1,1]);
+      //   pushed_bone.set_position(new_position);
       // }
       this.bones.push(pushed_bone);
       bone_count += 1;
@@ -126,19 +117,22 @@ export class Mesh {
   }
 
   //testtt function
-  public test_rotate(): void{
+  public test_rotate(rotation_world: Quat): void{
     let original_bone: Bone = this.bones[1];
 
-    let axis: Vec3 = new Vec3([1, 0, 0]);
-    let angle: number = Math.PI / 4;
-    let rotation: Quat = Quat.fromAxisAngle(axis, angle);
+    // let axis: Vec3 = new Vec3([1, 0, 0]);
+    // let angle: number = Math.PI / 4;
+    // let rotation: Quat = Quat.fromAxisAngle(axis, angle);
     let original_rotation: Quat = original_bone.get_rotation();
     let composed_rotation: Quat = new Quat();
-    rotation.multiply(original_rotation, composed_rotation);
+    rotation_world.multiply(original_rotation, composed_rotation);
     original_bone.set_rotation(composed_rotation);
-    
-  }
 
+    // console.log(original_bone.get_position());
+  }
+  public test_set_endpoint(endpoint_world: Vec3): void{
+    this.bones[1].set_endpoint(endpoint_world);
+  }
   //TODO: Create functionality for bone manipulation/key-framing
 
   public getBoneIndices(): Uint32Array {
