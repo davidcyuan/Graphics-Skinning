@@ -415,4 +415,55 @@ export class GUI implements IGUI {
       event.preventDefault()
     );
   }
+
+  public screen_to_world_ray(mouseX: number, mouseY): Vec3 {
+    const x = (2 * mouseX) / this.width - 1;
+    const y = 1 - (2 * mouseY) / this.viewPortHeight;
+    const mouseNormal = new Vec4([x, y, -1, 1]);
+    const mouseWorld = this.viewMatrix().inverse().multiplyVec4(this.projMatrix().inverse().multiplyVec4(mouseNormal));
+    mouseWorld.scale(1 / mouseWorld.w);
+    const ray = Vec3.difference(new Vec3(mouseWorld.xyz), this.camera.pos()).normalize();
+    return ray;
+  }
+
+  public intersectCylinder(bone: Bone, cameraPosition: Vec3, rayDirection: Vec3): boolean {
+    const radius = 0.2; 
+    const boneStart = new Vec3([bone.position.x, bone.position.y, bone.position.z]);
+    const boneEnd = new Vec3([bone.endpoint.x, bone.endpoint.y, bone.endpoint.z]);
+    const boneDirection = Vec3.difference(boneEnd, boneStart).normalize();
+    const boneLength = Vec3.distance(boneEnd, boneStart);
+
+    // Calculate ray origin and direction
+    const rayOrigin = new Vec3(cameraPosition.xyz);
+    const rayDir = new Vec3(rayDirection.xyz);
+
+    // Vector from ray origin to cylinder start
+    const startToRayOrigin = Vec3.difference(rayOrigin, boneStart);
+
+    const dirCrossBoneDir = Vec3.cross(rayDir, boneDirection);
+    const startToOriginCrossBoneDir = Vec3.cross(startToRayOrigin, boneDirection);
+
+    // Compute terms used in quadratic equation
+    const a = dirCrossBoneDir.squaredLength();
+    const b = 2 * Vec3.dot(dirCrossBoneDir, startToOriginCrossBoneDir);
+    const c = startToOriginCrossBoneDir.squaredLength() - radius * radius;
+    // Solve quadratic equation
+    const discriminant = Math.pow(b, 2) - 4 * a * c;
+    if (discriminant < 0) {
+        return false; // No intersection
+    }
+
+    // Find the closest intersection point
+    const t1 = (-b - Math.sqrt(discriminant)) / (2 * a);
+    const t2 = (-b + Math.sqrt(discriminant)) / (2 * a);
+    const t = (t1 < t2) ? t1 : t2; // Use the smaller positive t value
+
+    // Check if the intersection point is within the bone length
+    if (t < 0 || t > boneLength) {
+        return false; // Intersection point is outside the bone
+    }
+    console.log("we found an intersection");
+    return true; // Intersection found
+}
+
 }
