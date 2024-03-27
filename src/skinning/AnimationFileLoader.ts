@@ -236,9 +236,12 @@ class CLoader {
   }
 
   //testtt rotate
-  public apply_local_rotation(rotation_world: Quat): void{
-    // this.meshes[0].bones[1].apply_local_rotation(rotation_world);
-    this.meshes[0].apply_local_rotation(rotation_world);
+  // public apply_local_rotation(rotation_world: Quat): void{
+  //   // this.meshes[0].bones[1].apply_local_rotation(rotation_world);
+  //   this.meshes[0].apply_local_rotation(rotation_world);
+  // }
+  public target_rotation(target_world: Vec3): void{
+    this.meshes[0].target_rotation(target_world);
   }
   public test_set_endpoint(endpoint_world: Vec3): void{
     // this.meshes[0].test_set_endpoint(endpoint_world);
@@ -246,9 +249,9 @@ class CLoader {
   public get_bone_1_position(): Vec3{
     return this.meshes[0].bones[1].get_position();
   }
-  public get_bone_1_end(): Vec3{
-    return this.meshes[0].bones[1].get_endpoint();
-  }
+  // public get_bone_1_end(): Vec3{
+  //   return this.meshes[0].bones[1].get_endpoint();
+  // }
   
 
   public load(callback: Function): void {

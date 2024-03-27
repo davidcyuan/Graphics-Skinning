@@ -86,8 +86,11 @@ export class SkinningAnimation extends CanvasAnimation {
   }
 
   //testtt function
-  public apply_local_rotation(rotation_world: Quat): void{
-    this.scene.apply_local_rotation(rotation_world);
+  // public apply_local_rotation(rotation_world: Quat): void{
+  //   this.scene.apply_local_rotation(rotation_world);
+  // }
+  public target_rotation(target_world: Vec3): void{
+    this.scene.target_rotation(target_world);
   }
   public test_set_endpoint(endpoint_world: Vec3): void{
     this.scene.test_set_endpoint(endpoint_world);
@@ -95,9 +98,9 @@ export class SkinningAnimation extends CanvasAnimation {
   public get_bone_1_position(): Vec3{
     return this.scene.get_bone_1_position();
   }
-  public get_bone_1_end(): Vec3{
-    return this.scene.get_bone_1_end();
-  }
+  // public get_bone_1_end(): Vec3{
+  //   return this.scene.get_bone_1_end();
+  // }
 
   public getScene(): CLoader {
     return this.scene;

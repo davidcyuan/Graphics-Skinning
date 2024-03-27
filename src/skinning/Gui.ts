@@ -267,7 +267,7 @@ export class GUI implements IGUI {
         view_matrix.inverse(inverse_view_matrix);
         // let inverse_proj_matrix: Mat4 = new Mat4();
 
-        let bone_E_world: Vec3 = this.animation.get_bone_1_end();
+        // let bone_E_world: Vec3 = this.animation.get_bone_1_end();
         // let bone_E_world_h: Vec4 = new Vec4([bone_E_world.x, bone_E_world.y, bone_E_world.z, 1]);
         // let bone_E_view: Vec4 = view_matrix.multiplyVec4(bone_E_world_h);
 
@@ -276,28 +276,29 @@ export class GUI implements IGUI {
         let new_E_world_h: Vec4 = inverse_view_matrix.multiplyVec4(new_E_view);
         let new_E_world: Vec3 = new Vec3([new_E_world_h.x, new_E_world_h.y, new_E_world_h.z]);
 
-        let bone_O_world: Vec3 = this.animation.get_bone_1_position();
+        // let bone_O_world: Vec3 = this.animation.get_bone_1_position();
 
-        let vec_OE: Vec3 = new Vec3();
-        bone_E_world.subtract(bone_O_world, vec_OE);
-        vec_OE.normalize();
+        // let vec_OE: Vec3 = new Vec3();
+        // bone_E_world.subtract(bone_O_world, vec_OE);
+        // vec_OE.normalize();
 
-        let vec_ON: Vec3 = new Vec3();
-        new_E_world.subtract(bone_O_world, vec_ON);
-        vec_ON.normalize();
+        // let vec_ON: Vec3 = new Vec3();
+        // new_E_world.subtract(bone_O_world, vec_ON);
+        // vec_ON.normalize();
 
-        let raw_axis: Vec3 = Vec3.cross(vec_OE, vec_ON);
+        // let raw_axis: Vec3 = Vec3.cross(vec_OE, vec_ON);
 
-        let axis: Vec3 = new Vec3();
-        raw_axis.normalize(axis);
+        // let axis: Vec3 = new Vec3();
+        // raw_axis.normalize(axis);
 
-        let dot_product: number = Vec3.dot(vec_OE, vec_ON);
-        let cross_product_length: number = raw_axis.length();
-        let angle: number = Math.atan2(cross_product_length, dot_product);
+        // let dot_product: number = Vec3.dot(vec_OE, vec_ON);
+        // let cross_product_length: number = raw_axis.length();
+        // let angle: number = Math.atan2(cross_product_length, dot_product);
         
 
-        let rotation_world: Quat = Quat.fromAxisAngle(axis, angle);
-        this.animation.apply_local_rotation(rotation_world);
+        // let rotation_world: Quat = Quat.fromAxisAngle(axis, angle);
+        // this.animation.apply_local_rotation(rotation_world);
+        this.animation.target_rotation(new_E_world);
         // this.animation.test_set_endpoint(new_E_world);
 
         break;
@@ -503,8 +504,8 @@ public updateHighlightedBone(mouseX: number, mouseY: number): void {
           }
       }
   }
-  console.log("found a highlighted bone at");
-  console.log(closestBoneIndex);
+  // console.log("found a highlighted bone at");
+  // console.log(closestBoneIndex);
   this.highlight = closestBoneIndex;
 }
 
