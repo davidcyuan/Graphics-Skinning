@@ -76,7 +76,7 @@ export class Bone {
     this.rotation_local = starting_rotation.toMat4();
 
     //depreicated to be
-    this.
+    this.deprecated_endpoint = bone.endpoint.copy();
   }
   //gets translation matrices
   public constructor_2(bones: Bone[]){
@@ -281,9 +281,9 @@ export class Mesh {
     // this.bones[1].propogate(this.bones);
   }
 
-  public target_rotation(target_world: Vec3){
-    this.bones[1].target_rotation(target_world);
-    this.bones[1].propogate(this.bones);
+  public target_rotation(bone_index: number, target_world: Vec3){
+    this.bones[bone_index].target_rotation(target_world);
+    this.bones[bone_index].propogate(this.bones);
   }
 
   public getBoneIndices(): Uint32Array {

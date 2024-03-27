@@ -240,8 +240,8 @@ class CLoader {
   //   // this.meshes[0].bones[1].apply_local_rotation(rotation_world);
   //   this.meshes[0].apply_local_rotation(rotation_world);
   // }
-  public target_rotation(target_world: Vec3): void{
-    this.meshes[0].target_rotation(target_world);
+  public target_rotation(bone_index: number, target_world: Vec3): void{
+    this.meshes[0].target_rotation(bone_index, target_world);
   }
   public test_set_endpoint(endpoint_world: Vec3): void{
     // this.meshes[0].test_set_endpoint(endpoint_world);

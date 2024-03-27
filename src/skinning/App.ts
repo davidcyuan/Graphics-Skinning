@@ -89,8 +89,8 @@ export class SkinningAnimation extends CanvasAnimation {
   // public apply_local_rotation(rotation_world: Quat): void{
   //   this.scene.apply_local_rotation(rotation_world);
   // }
-  public target_rotation(target_world: Vec3): void{
-    this.scene.target_rotation(target_world);
+  public target_rotation(bone_index: number, target_world: Vec3): void{
+    this.scene.target_rotation(bone_index, target_world);
   }
   public test_set_endpoint(endpoint_world: Vec3): void{
     this.scene.test_set_endpoint(endpoint_world);

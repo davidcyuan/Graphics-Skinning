@@ -298,7 +298,7 @@ export class GUI implements IGUI {
 
         // let rotation_world: Quat = Quat.fromAxisAngle(axis, angle);
         // this.animation.apply_local_rotation(rotation_world);
-        this.animation.target_rotation(new_E_world);
+        this.animation.target_rotation(1, new_E_world);
         // this.animation.test_set_endpoint(new_E_world);
 
         break;
