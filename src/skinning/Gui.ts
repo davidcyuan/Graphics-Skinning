@@ -47,7 +47,7 @@ export class GUI implements IGUI {
   private animation: SkinningAnimation;
 
   private selectedBone: number;
-  private highlight: any;
+  public highlight: number;
   private boneDragging: boolean;
 
   public time: number;
@@ -71,6 +71,7 @@ export class GUI implements IGUI {
     this.width = canvas.width;
     this.prevX = 0;
     this.prevY = 0;
+    this.highlight = -1.0;
     
     this.animation = animation;
     
@@ -101,6 +102,7 @@ export class GUI implements IGUI {
     this.dragging = false;
     this.time = 0;
 	this.mode = Mode.edit;
+  this.highlight = -1.0;
     
     this.camera = new Camera(
       new Vec3([0, 0, -6]),
@@ -183,6 +185,7 @@ export class GUI implements IGUI {
     let x = mouse.offsetX;
     let y = mouse.offsetY;
     this.updateHighlightedBone(x, y);
+    console.log(this.highlight);
     if (this.dragging) {
       if(this.boneDragging){
         //add rotation logic here
