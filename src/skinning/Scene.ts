@@ -59,11 +59,13 @@ export class Bone {
   public translation_parent_this: Mat4
   public parent_D: Mat4;
   // public TR: Mat4;
+  public deprecated_endpoint;
 
   constructor(bone: BoneLoader) {
     this.parent = bone.parent;
     this.children = Array.from(bone.children);
     this.position_local = new Vec3();
+    this.deprecated_endpoint = bone.endpoint.copy();
 
     this.starting_position_world = bone.position.copy();
     this.endpoint_local = new Vec3();
@@ -72,6 +74,9 @@ export class Bone {
     let starting_rotation = bone.rotation.copy();
     //check
     this.rotation_local = starting_rotation.toMat4();
+
+    //depreicated to be
+    this.
   }
   //gets translation matrices
   public constructor_2(bones: Bone[]){
@@ -213,9 +218,9 @@ export class Bone {
     // this.propogate(bones);
   }
   public get_endpoint(): Vec3{
-    // return this.endpoint.copy();
+    return this.deprecated_endpoint.copy();
     // return this.D.my_mult_vec3(this.endpoint_local).copy();
-    return new Vec3();
+    // return new Vec3();
   }
   //deprecated
   // public set_endpoint(endpoint: Vec3): void{
