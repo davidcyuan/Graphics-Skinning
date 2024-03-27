@@ -428,8 +428,8 @@ export class GUI implements IGUI {
 
   public intersectCylinder(bone: Bone, cameraPosition: Vec3, rayDirection: Vec3): boolean {
     const radius = 0.2; 
-    const boneStart = new Vec3([bone.position.x, bone.position.y, bone.position.z]);
-    const boneEnd = new Vec3([bone.endpoint.x, bone.endpoint.y, bone.endpoint.z]);
+    const boneStart = new Vec3([bone.get_position().x, bone.get_position().y, bone.get_position().z]);
+    const boneEnd = new Vec3([bone.get_endpoint().x, bone.get_endpoint().y, bone.get_endpoint().z]);
     const boneDirection = Vec3.difference(boneEnd, boneStart).normalize();
     const boneLength = Vec3.distance(boneEnd, boneStart);
 
