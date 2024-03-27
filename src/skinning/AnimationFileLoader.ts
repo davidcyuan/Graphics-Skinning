@@ -235,11 +235,6 @@ class CLoader {
     this.meshes = [];
   }
 
-  //testtt rotate
-  // public apply_local_rotation(rotation_world: Quat): void{
-  //   // this.meshes[0].bones[1].apply_local_rotation(rotation_world);
-  //   this.meshes[0].apply_local_rotation(rotation_world);
-  // }
   public target_rotation(bone_index: number, target_world: Vec3): void{
     this.meshes[0].target_rotation(bone_index, target_world);
   }

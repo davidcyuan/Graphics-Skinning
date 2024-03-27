@@ -219,13 +219,7 @@ export class Bone {
   }
   public get_endpoint(): Vec3{
     return this.deprecated_endpoint.copy();
-    // return this.D.my_mult_vec3(this.endpoint_local).copy();
-    // return new Vec3();
   }
-  //deprecated
-  // public set_endpoint(endpoint: Vec3): void{
-  //   // this.endpoint = endpoint;
-  // }
 }
 
 //Class for handling the overall mesh and rig

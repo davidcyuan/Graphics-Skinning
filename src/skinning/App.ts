@@ -85,10 +85,7 @@ export class SkinningAnimation extends CanvasAnimation {
     this.millis = new Date().getTime();
   }
 
-  //testtt function
-  // public apply_local_rotation(rotation_world: Quat): void{
-  //   this.scene.apply_local_rotation(rotation_world);
-  // }
+
   public target_rotation(bone_index: number, target_world: Vec3): void{
     this.scene.target_rotation(bone_index, target_world);
   }
@@ -98,9 +95,6 @@ export class SkinningAnimation extends CanvasAnimation {
   public get_bone_1_position(): Vec3{
     return this.scene.get_bone_1_position();
   }
-  // public get_bone_1_end(): Vec3{
-  //   return this.scene.get_bone_1_end();
-  // }
 
   public getScene(): CLoader {
     return this.scene;
