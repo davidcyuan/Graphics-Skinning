@@ -3,6 +3,8 @@ import { Vec3 } from "./Vec3.js";
 import { Vec4 } from "./Vec4.js";
 import { epsilon } from "./Constants.js";
 
+import { Quat } from "./Quat.js";
+
 // TODO - define a MatArray type that better protects
 // array input sizes. Similar to type of [number, number, number]
 // for Vec3
@@ -278,6 +280,10 @@ export class Mat4 {
    */
   public at(index: number): number {
     return this.values[index];
+  }
+
+  public set(index: number, value: number): void{
+    this.values[index] = value;
   }
 
   /**
@@ -670,6 +676,12 @@ export class Mat4 {
     return dest;
   }
 
+  public my_mult_vec3(vector: Vec3): Vec3{
+    let vector_h: Vec4 = new Vec4([vector.x, vector.y, vector.z, 1]);
+    let result_h: Vec4 = this.multiplyVec4(vector_h);
+    return new Vec3([result_h.x / result_h.w, result_h.y / result_h.w, result_h.z / result_h.w]);
+  }
+
   /**
    * Multiplies the Vector as such: this * v.
    * If dest is not provided then a new Vec4 is created
@@ -768,6 +780,80 @@ export class Mat4 {
       (-a12 * a00 + a02 * a10) * det,
       (a11 * a00 - a01 * a10) * det
     ]);
+  }
+
+  /**
+   * Returns the element at the given index.
+   * The matrix layout:
+   * +---------------+
+   * | 0 | 4 | 8 | 12|
+   * +----------------
+   * | 1 | 5 | 9 | 13|
+   * +---------------+
+   * | 2 | 6 | 10| 14|
+   * +---------------+
+   * | 3 | 7 | 11| 15|
+   * +---------------+
+   */
+
+  //treats the Mat4 as a deformation matrix, and returns the quaternion representation of the rotation part
+  public get_rotation_Quat(): Quat{
+    let m00: number = this.values[0];
+    let m11: number = this.values[5];
+    let m22: number = this.values[10];
+
+    let m21: number = this.values[6];
+    let m12: number = this.values[9];
+
+    let m02: number = this.values[8];
+    let m20: number = this.values[2];
+
+    let m10: number = this.values[1];
+    let m01: number = this.values[4];
+
+    let qw: number = 69;
+    let qx: number = 69;
+    let qy: number = 69;
+    let qz: number = 69;
+
+    let tr: number = m00 + m11 + m22;
+    if (tr > 0) { 
+      let S: number = Math.sqrt(tr+1.0) * 2; // S=4*qw 
+      qw = 0.25 * S;
+      qx = (m21 - m12) / S;
+      qy = (m02 - m20) / S; 
+      qz = (m10 - m01) / S; 
+    } else if ((m00 > m11)&&(m00 > m22)) { 
+      let S: number = Math.sqrt(1.0 + m00 - m11 - m22) * 2; // S=4*qx 
+      qw = (m21 - m12) / S;
+      qx = 0.25 * S;
+      qy = (m01 + m10) / S; 
+      qz = (m02 + m20) / S; 
+    } else if (m11 > m22) { 
+      let S: number = Math.sqrt(1.0 + m11 - m00 - m22) * 2; // S=4*qy
+      qw = (m02 - m20) / S;
+      qx = (m01 + m10) / S; 
+      qy = 0.25 * S;
+      qz = (m12 + m21) / S; 
+    } else { 
+      let S: number = Math.sqrt(1.0 + m22 - m00 - m11) * 2; // S=4*qz
+      qw = (m10 - m01) / S;
+      qx = (m02 + m20) / S;
+      qy = (m12 + m21) / S;
+      qz = 0.25 * S;
+    }
+
+    return new Quat([qx, qy, qz, qw]);    
+  }
+
+  //treats the Mat4 as a deformation matrix, and returns the position/translation part as a vec3
+  public get_position_Vec3(): Vec3{
+    return new Vec3([this.values[12], this.values[13], this.values[14]]);
+  }
+  public set_position_Vec3(position: Vec3): void{
+    this.values[12] = position.x;
+    this.values[13] = position.y;
+    this.values[14] = position.z;
   }
 
   /**

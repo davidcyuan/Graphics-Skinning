@@ -257,27 +257,18 @@ export class GUI implements IGUI {
         let view_matrix: Mat4 = this.viewMatrix();
         let inverse_view_matrix: Mat4 = new Mat4();
         view_matrix.inverse(inverse_view_matrix);
-        let proj_matrix: Mat4 = this.projMatrix();
-        let inverse_proj_matrix: Mat4 = new Mat4();
-        proj_matrix.inverse(inverse_proj_matrix);
+        // let inverse_proj_matrix: Mat4 = new Mat4();
 
         let bone_E_world: Vec3 = this.animation.get_bone_1_end();
-        let bone_E_world_h: Vec4 = new Vec4([bone_E_world.x, bone_E_world.y, bone_E_world.z, 1]);
-        let bone_E_view: Vec4 = view_matrix.multiplyVec4(bone_E_world_h);
-        // let bone_E_proj: Vec4 = proj_matrix.multiplyVec4(bone_E_view);
+        // let bone_E_world_h: Vec4 = new Vec4([bone_E_world.x, bone_E_world.y, bone_E_world.z, 1]);
+        // let bone_E_view: Vec4 = view_matrix.multiplyVec4(bone_E_world_h);
 
-        // let bone_E_test: Vec4 = new Vec4([bone_E_proj.x / bone_E_proj.w, bone_E_proj.y / bone_E_proj.w, bone_E_proj.z / bone_E_proj.w, 1]);
-        // console.log(bone_E_test);
-        // let new_E_proj: Vec4 = new Vec4([0.9, 0.9, bone_E_proj.z / bone_E_proj.w, 1]);
-        // let n_E_v: Vec4 = inverse_proj_matrix.multiplyVec4(new_E_proj);
-        // let new_E_view: Vec4 = new Vec4([n_E_v.x / n_E_v.w, n_E_v.y / n_E_v.w, bone_E_view.z, 1]);
-        let new_E_view: Vec4 = new Vec4([1, 1, bone_E_view.z, 1]);
+        // let new_E_view: Vec4 = new Vec4([1, 1, bone_E_view.z, 1]);
+        let new_E_view: Vec4 = new Vec4([1, 1, -7, 1]);
         let new_E_world_h: Vec4 = inverse_view_matrix.multiplyVec4(new_E_view);
         let new_E_world: Vec3 = new Vec3([new_E_world_h.x, new_E_world_h.y, new_E_world_h.z]);
 
         let bone_O_world: Vec3 = this.animation.get_bone_1_position();
-
-        // let new_E_world: Vec3 = new Vec3([0, 2, -1]);
 
         let vec_OE: Vec3 = new Vec3();
         bone_E_world.subtract(bone_O_world, vec_OE);
@@ -285,11 +276,9 @@ export class GUI implements IGUI {
 
         let vec_ON: Vec3 = new Vec3();
         new_E_world.subtract(bone_O_world, vec_ON);
-        // console.log(JSON.parse(JSON.stringify(vec_ON)));
         vec_ON.normalize();
 
         let raw_axis: Vec3 = Vec3.cross(vec_OE, vec_ON);
-        // console.log(JSON.parse(JSON.stringify(raw_axis)));
 
         let axis: Vec3 = new Vec3();
         raw_axis.normalize(axis);
@@ -300,10 +289,8 @@ export class GUI implements IGUI {
         
 
         let rotation_world: Quat = Quat.fromAxisAngle(axis, angle);
-        this.animation.test_rotate(rotation_world);
-        // this.animation.test_set_endpoint(new Vec3([bone_O_world.x + vec_ON.x, bone_O_world.y + vec_ON.y, bone_O_world.z + vec_ON.z]));
-        // console.log(JSON.parse(JSON.stringify((new_E_world))));
-        this.animation.test_set_endpoint(new_E_world);
+        this.animation.apply_local_rotation(rotation_world);
+        // this.animation.test_set_endpoint(new_E_world);
 
         break;
       }

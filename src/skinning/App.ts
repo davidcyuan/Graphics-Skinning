@@ -86,8 +86,8 @@ export class SkinningAnimation extends CanvasAnimation {
   }
 
   //testtt function
-  public test_rotate(rotation_world: Quat): void{
-    this.scene.test_rotate(rotation_world);
+  public apply_local_rotation(rotation_world: Quat): void{
+    this.scene.apply_local_rotation(rotation_world);
   }
   public test_set_endpoint(endpoint_world: Vec3): void{
     this.scene.test_set_endpoint(endpoint_world);
@@ -135,6 +135,7 @@ export class SkinningAnimation extends CanvasAnimation {
    * Sets up the mesh and mesh drawing
    */
   public initModel(): void {
+    console.log("initModel");
     this.sceneRenderPass = new RenderPass(this.extVAO, this.ctx, sceneVSText, sceneFSText);
 
     let faceCount = this.scene.meshes[0].geometry.position.count / 3;
@@ -206,6 +207,7 @@ export class SkinningAnimation extends CanvasAnimation {
    * Sets up the skeleton drawing
    */
   public initSkeleton(): void {
+    console.log("initSkeleton");
     this.skeletonRenderPass.setIndexBufferData(this.scene.meshes[0].getBoneIndices());
 
     this.skeletonRenderPass.addAttribute("vertPosition", 3, this.ctx.FLOAT, false,
