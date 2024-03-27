@@ -47,6 +47,7 @@ export class GUI implements IGUI {
   private animation: SkinningAnimation;
 
   private selectedBone: number;
+  private highlight: any;
   private boneDragging: boolean;
 
   public time: number;
@@ -153,6 +154,7 @@ export class GUI implements IGUI {
     }
 	
     // TODO: Add logic to rotate the bones, instead of moving the camera, if there is a currently highlighted bone
+    this.updateHighlightedBone(mouse.offsetX, mouse.offsetY);
     
     this.dragging = true;
     this.prevX = mouse.screenX;
@@ -181,6 +183,9 @@ export class GUI implements IGUI {
     let x = mouse.offsetX;
     let y = mouse.offsetY;
     if (this.dragging) {
+      if(this.boneDragging){
+        //add rotation logic here
+      } else{
       const dx = mouse.screenX - this.prevX;
       const dy = mouse.screenY - this.prevY;
       this.prevX = mouse.screenX;
@@ -217,6 +222,7 @@ export class GUI implements IGUI {
           break;
         }
       }
+    }
     } 
     // TODO: Add logic here:
     // 1) To highlight a bone, if the mouse is hovering over a bone;
@@ -239,9 +245,10 @@ export class GUI implements IGUI {
     this.dragging = false;
     this.prevX = 0;
     this.prevY = 0;
-	
+    this.boneDragging = false;
+    this.highlight = -1;
+    this.selectedBone = -1
     // TODO: Handle ending highlight/dragging logic as needed
-  
   }
 
   /**
@@ -426,8 +433,8 @@ export class GUI implements IGUI {
     return ray;
   }
 
-  public intersectCylinder(bone: Bone, cameraPosition: Vec3, rayDirection: Vec3): boolean {
-    const radius = 0.2; 
+  public intersectCylinder(bone: Bone, cameraPosition: Vec3, rayDirection: Vec3) {
+    const radius = .1; 
     const boneStart = new Vec3([bone.get_position().x, bone.get_position().y, bone.get_position().z]);
     const boneEnd = new Vec3([bone.get_endpoint().x, bone.get_endpoint().y, bone.get_endpoint().z]);
     const boneDirection = Vec3.difference(boneEnd, boneStart).normalize();
@@ -450,20 +457,54 @@ export class GUI implements IGUI {
     // Solve quadratic equation
     const discriminant = Math.pow(b, 2) - 4 * a * c;
     if (discriminant < 0) {
-        return false; // No intersection
+        return -1; // No intersection
     }
 
     // Find the closest intersection point
     const t1 = (-b - Math.sqrt(discriminant)) / (2 * a);
     const t2 = (-b + Math.sqrt(discriminant)) / (2 * a);
     const t = (t1 < t2) ? t1 : t2; // Use the smaller positive t value
+    const intersectionPoint1 = new Vec3([
+      rayOrigin.x + rayDir.x * t1,
+      rayOrigin.y + rayDir.y * t1,
+      rayOrigin.z + rayDir.z * t1
+  ]);
+  
+  const intersectionPoint2 = new Vec3([
+    rayOrigin.x + rayDir.x * t2,
+    rayOrigin.y + rayDir.y * t2,
+    rayOrigin.z + rayDir.z * t2
+  ]);
 
-    // Check if the intersection point is within the bone length
-    if (t < 0 || t > boneLength) {
-        return false; // Intersection point is outside the bone
-    }
-    console.log("we found an intersection");
-    return true; // Intersection found
+  if (t1 > 0.00001 && Vec3.dot(boneDirection, Vec3.difference(intersectionPoint1, boneStart)) >= 0 && Vec3.dot(boneDirection, Vec3.difference(intersectionPoint2, boneEnd)) <= 0)
+    return t1;
+  
+  if (t2 > 0.00001 && Vec3.dot(boneDirection, Vec3.difference(intersectionPoint2, boneStart)) >= 0 && Vec3.dot(boneDirection, Vec3.difference(intersectionPoint2, boneEnd)) <= 0)
+    return t2;
+
+  return -1;
+
+}
+
+public updateHighlightedBone(mouseX: number, mouseY: number): void {
+  const rayDirection = this.screen_to_world_ray(mouseX, mouseY);
+
+  let closestBoneIndex = -1;
+  let closestIntersection = Number.MAX_VALUE;
+
+  for (let i = 0; i < this.animation.getScene().meshes.length; i++) {
+      for (let j = 0; j < this.animation.getScene().meshes[i].bones.length; j++) {
+          const bone = this.animation.getScene().meshes[i].bones[j];
+          const intersection = this.intersectCylinder(bone, this.camera.pos(), rayDirection);
+          if (intersection !== -1 && intersection < closestIntersection) {
+              closestIntersection = intersection;
+              closestBoneIndex = j;
+          }
+      }
+  }
+  console.log("found a highlighted bone at");
+  console.log(closestBoneIndex);
+  this.highlight = closestBoneIndex;
 }
 
 }

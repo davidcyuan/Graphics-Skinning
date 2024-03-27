@@ -225,6 +225,7 @@ class CLoader {
   private scene: Scene | null;
   private skinnedMeshes: SkinnedMesh[];
   public meshes: Mesh[];
+  public highlight: any = null; s
 
   constructor(location: string) {
     this.fileLocation = location;
