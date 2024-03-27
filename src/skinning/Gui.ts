@@ -182,6 +182,7 @@ export class GUI implements IGUI {
   public drag(mouse: MouseEvent): void {
     let x = mouse.offsetX;
     let y = mouse.offsetY;
+    this.updateHighlightedBone(x, y);
     if (this.dragging) {
       if(this.boneDragging){
         //add rotation logic here
