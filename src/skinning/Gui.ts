@@ -159,6 +159,9 @@ export class GUI implements IGUI {
     this.updateHighlightedBone(mouse.offsetX, mouse.offsetY);
     
     this.dragging = true;
+    if(this.highlight != -1.0){
+      //logic for rotations
+    }
     this.prevX = mouse.screenX;
     this.prevY = mouse.screenY;
     console.log("screenX: ")

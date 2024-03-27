@@ -234,8 +234,9 @@ export class SkinningAnimation extends CanvasAnimation {
     });
     this.skeletonRenderPass.addUniform("bHighlight",
       (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
-        if(this.scene.highlight){
-          gl.uniform1f(loc, this.scene.highlight.index);
+        if(this.getGUI().highlight != -1.0){
+          console.log(this.getGUI().highlight);
+          gl.uniform1f(loc, this.getGUI().highlight);
         }
         else{
             gl.uniform1f(loc, -1);
