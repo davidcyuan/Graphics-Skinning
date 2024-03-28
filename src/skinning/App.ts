@@ -97,7 +97,9 @@ export class SkinningAnimation extends CanvasAnimation {
   public rotate_bone(bone_index: number, axis: Vec3, angle: number): void{
     this.scene.rotate_bone(bone_index, axis, angle);
   }
-
+  public roll_bone(bone_index: number, angle: number, axis_sign: boolean){
+    this.scene.roll_bone(bone_index, angle, axis_sign);
+  }
   public getScene(): CLoader {
     return this.scene;
   }

@@ -240,6 +240,19 @@ export class Bone {
     // this.test_rotation = Quat.fromAxisAngle(new Vec3([0, 0, 1]), angle);
     // console.log(axis);
   }
+  public roll(angle: number, axis_sign: boolean): void{
+    let axis_local: Vec3 = new Vec3([this.endpoint_local.x, this.endpoint_local.y, this.endpoint_local.z]);
+    axis_local.normalize();
+    if(axis_sign == false){
+      axis_local.scale(-1);
+    }
+    let local_rotation: Quat = Quat.fromAxisAngle(axis_local, angle);
+    let local_rotation_mat: Mat4 = local_rotation.toMat4();
+
+    let new_local_rotation: Mat4 = new Mat4();
+    this.rotation_local.multiply(local_rotation_mat, new_local_rotation);
+    this.rotation_local = new_local_rotation;
+  }
   public get_endpoint(): Vec3{
     // return this.deprecated_endpoint.copy();
     return this.get_D().my_mult_vec3(this.endpoint_local);
@@ -305,6 +318,10 @@ export class Mesh {
   // }
   public rotate_bone(bone_index: number, axis: Vec3, angle: number){
     this.bones[bone_index].rotate(axis, angle);
+    this.bones[bone_index].propogate(this.bones);
+  }
+  public roll_bone(bone_index: number, angle: number, axis_sign: boolean): void{
+    this.bones[bone_index].roll(angle, axis_sign);
     this.bones[bone_index].propogate(this.bones);
   }
 

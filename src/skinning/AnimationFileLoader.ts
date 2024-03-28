@@ -250,6 +250,9 @@ class CLoader {
   public get_bone_endpoint(bone_index): Vec3{
     return this.meshes[0].bones[bone_index].get_endpoint();
   }
+  public roll_bone(bone_index: number, angle: number, axis_sign: boolean): void{
+    this.meshes[0].roll_bone(bone_index, angle, axis_sign);
+  }
   
 
   public load(callback: Function): void {

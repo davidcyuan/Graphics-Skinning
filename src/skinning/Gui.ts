@@ -158,10 +158,13 @@ export class GUI implements IGUI {
     }
 	
     // TODO: Add logic to rotate the bones, instead of moving the camera, if there is a currently highlighted bone
-    let bone_index = this.updateHighlightedBone(mouse.offsetX, mouse.offsetY);
-    if(bone_index >-0.5){
-      this.selectedBone = bone_index;
+    this.updateHighlightedBone(mouse.offsetX, mouse.offsetY);
+    if(this.selectedBone > -0.5){
+      this.boneDragging = true;
     }
+    // if(bone_index >-0.5){
+    //   this.selectedBone = bone_index;
+    // }
     // this.rotate_bone(0, mouse.offsetX, mouse.offsetY);
     //
     
@@ -194,7 +197,7 @@ export class GUI implements IGUI {
   public drag(mouse: MouseEvent): void {
     let x = mouse.offsetX;
     let y = mouse.offsetY;
-    this.updateHighlightedBone(x, y);
+    this.selectedBone = this.updateHighlightedBone(x, y);
     //always rotate bone 1 to mouse
       // this.rotate_bone(1, x, y);
 
@@ -203,7 +206,7 @@ export class GUI implements IGUI {
     //
     // console.log(this.highlight);
     if (this.dragging) {
-      if(this.selectedBone > -0.5){
+      if(this.boneDragging){
         this.rotate_bone(this.selectedBone, x, y);
       } else{
       const dx = mouse.screenX - this.prevX;
@@ -342,37 +345,6 @@ export class GUI implements IGUI {
   
   public onKeydown(key: KeyboardEvent): void {
     switch (key.code) {
-      //testtting key
-      //rotate bone 1
-      case "KeyT": {
-
-
-
-        // //get bone[1]'s position
-        // let view_matrix: Mat4 = this.viewMatrix();
-        // let inverse_view_matrix: Mat4 = new Mat4();
-        // view_matrix.inverse(inverse_view_matrix);
-
-        // let new_E_view: Vec4 = new Vec4([1, 1, -7, 1]);
-        // let new_E_world_h: Vec4 = inverse_view_matrix.multiplyVec4(new_E_view);
-        // let new_E_world: Vec3 = new Vec3([new_E_world_h.x, new_E_world_h.y, new_E_world_h.z]);
-        // this.animation.target_rotation(1, new_E_world);
-
-        break;
-      }
-      //rotate bone 0
-      case "KeyY": {
-        // let view_matrix: Mat4 = this.viewMatrix();
-        // let inverse_view_matrix: Mat4 = new Mat4();
-        // view_matrix.inverse(inverse_view_matrix);
-
-        // let new_E_view: Vec4 = new Vec4([1, 1, -7, 1]);
-        // let new_E_world_h: Vec4 = inverse_view_matrix.multiplyVec4(new_E_view);
-        // let new_E_world: Vec3 = new Vec3([new_E_world_h.x, new_E_world_h.y, new_E_world_h.z]);
-        // this.animation.target_rotation(0, new_E_world);
-
-        break;
-      }
       case "Digit1": {
         this.animation.setScene("./static/assets/skinning/split_cube.dae");
         break;
@@ -426,13 +398,29 @@ export class GUI implements IGUI {
         break;
       }
       case "ArrowLeft": {
-		//TODO: Handle bone rolls when a bone is selected
-		this.camera.roll(GUI.rollSpeed, false);
+        //TODO: Handle bone rolls when a bone is selected
+        if(this.selectedBone > -0.5){
+          //here
+          // console.log("roll")
+          this.animation.roll_bone(this.selectedBone, GUI.rollSpeed, false);
+        }
+        else{
+          this.camera.roll(GUI.rollSpeed, false);
+          // break;
+        }
         break;
       }
       case "ArrowRight": {
-		//TODO: Handle bone rolls when a bone is selected
-		this.camera.roll(GUI.rollSpeed, true);
+        //TODO: Handle bone rolls when a bone is selected
+        if(this.selectedBone > -0.5){
+          //here
+          // console.log("roll");
+          this.animation.roll_bone(this.selectedBone, GUI.rollSpeed, true);
+        }
+        else{
+          this.camera.roll(GUI.rollSpeed, true);
+          // break;
+        }
         break;
       }
       case "ArrowUp": {
