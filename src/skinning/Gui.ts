@@ -197,14 +197,15 @@ export class GUI implements IGUI {
   public drag(mouse: MouseEvent): void {
     let x = mouse.offsetX;
     let y = mouse.offsetY;
-    this.selectedBone = this.updateHighlightedBone(x, y);
-    //always rotate bone 1 to mouse
-      // this.rotate_bone(1, x, y);
+    // this.selectedBone = this.updateHighlightedBone(x, y);
 
+    // console.log(this.boneDragging);
+    
+    if(this.dragging == false && this.boneDragging == false){
+      // console.log("here");
+      this.selectedBone = this.updateHighlightedBone(x, y);
+    }
 
-
-    //
-    // console.log(this.highlight);
     if (this.dragging) {
       if(this.boneDragging){
         this.rotate_bone(this.selectedBone, x, y);
