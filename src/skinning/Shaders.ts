@@ -75,24 +75,45 @@ export const sceneVSText = `
     uniform vec3 jTrans[64];
     uniform vec4 jRots[64];
 
+    vec3 qtrans(vec4 q, vec3 v) {
+        return v.xyz + 2.0 * cross(cross(v.xyz, q.xyz) - q.w*v, q.xyz);
+        //return v;
+    }
+        
+
 
     void main () {
-	
-        vec3 trans = vertPosition;
-        vec4 worldPosition = mWorld * vec4(trans, 1.0);
-        gl_Position = mProj * mView * worldPosition;
+        int bone_index_0 = int(skinIndices[0]);
+        vec4 v0_deformed = vec4(jTrans[bone_index_0] + qtrans(jRots[bone_index_0], v0.xyz), 1.0);
+        // vec3 v0_vec3 = v0_deformed.xyz / v0_deformed.w;
+        int bone_index_1 = int(skinIndices[1]);
+        vec4 v1_deformed = vec4(jTrans[bone_index_1] + qtrans(jRots[bone_index_1], v1.xyz), 1.0);
+        // vec3 v1_vec3 = v1_deformed.xyz / v1_deformed.w;
+        int bone_index_2 = int(skinIndices[2]);
+        vec4 v2_deformed = vec4(jTrans[bone_index_2] + qtrans(jRots[bone_index_2], v2.xyz), 1.0);
+        // vec3 v2_vec3 = v2_deformed.xyz / v2_deformed.w;
+        int bone_index_3 = int(skinIndices[3]);
+        vec4 v3_deformed = vec4(jTrans[bone_index_3] + qtrans(jRots[bone_index_3], v3.xyz), 1.0);
+        // vec3 v3_vec3 = v3_deformed.xyz / v3_deformed.w;
+
+        vec4 blended = skinWeights[0] * v0_deformed + skinWeights[1] * v1_deformed + skinWeights[2] * v2_deformed + skinWeights[3] * v3_deformed;
         
+
+        // vec3 trans = vertPosition;
+        // vec4 trans = blended;
+        vec4 worldPosition = blended;
+
+        gl_Position = mProj * mView * worldPosition;
         //  Compute light direction and transform to camera coordinates
         lightDir = lightPosition - worldPosition;
         
         vec4 aNorm4 = vec4(aNorm, 0.0);
         normal = normalize(mWorld * vec4(aNorm, 0.0));
-	
+    
         uv = aUV;
     }
 
 `;
-
 export const sceneFSText = `
     precision mediump float;
 
