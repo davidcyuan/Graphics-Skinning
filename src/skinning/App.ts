@@ -85,15 +85,17 @@ export class SkinningAnimation extends CanvasAnimation {
     this.millis = new Date().getTime();
   }
 
-
-  public target_rotation(bone_index: number, target_world: Vec3): void{
-    this.scene.target_rotation(bone_index, target_world);
+  public get_bone_position(bone_index: number): Vec3{
+    return this.scene.get_bone_position(bone_index);
   }
-  public test_set_endpoint(endpoint_world: Vec3): void{
-    this.scene.test_set_endpoint(endpoint_world);
+  public get_bone_endpoint(bone_index: number): Vec3{
+    return this.scene.get_bone_endpoint(bone_index);
   }
-  public get_bone_1_position(): Vec3{
-    return this.scene.get_bone_1_position();
+  // public target_rotation(bone_index: number, target_world: Vec3): void{
+  //   this.scene.target_rotation(bone_index, target_world);
+  // }
+  public rotate_bone(bone_index: number, axis: Vec3, angle: number): void{
+    this.scene.rotate_bone(bone_index, axis, angle);
   }
 
   public getScene(): CLoader {

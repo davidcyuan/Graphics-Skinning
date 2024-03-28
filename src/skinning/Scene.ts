@@ -61,6 +61,8 @@ export class Bone {
   // public TR: Mat4;
   public deprecated_endpoint;
 
+  public test_rotation: Quat;
+
   constructor(bone: BoneLoader) {
     this.parent = bone.parent;
     this.children = Array.from(bone.children);
@@ -71,7 +73,8 @@ export class Bone {
     this.endpoint_local = new Vec3();
     bone.endpoint.copy().subtract(this.starting_position_world, this.endpoint_local);
 
-    let starting_rotation = bone.rotation.copy();
+    let starting_rotation: Quat = bone.rotation.copy();
+    this.test_rotation = bone.rotation.copy();
     //check
     this.rotation_local = starting_rotation.toMat4();
 
@@ -170,6 +173,8 @@ export class Bone {
 
   public get_rotation(): Quat{
     return this.get_D().get_rotation_Quat().copy();
+    // return this.rotation_local.get_rotation_Quat().copy();
+    // return this.test_rotation;
   }
   // public apply_local_rotation(rotation: Quat, bones: Bone[]): void{
 
@@ -182,43 +187,62 @@ export class Bone {
   //   this.D = new_D;
   //   this.propogate(bones);
   // }
-  public target_rotation(target_world: Vec3): void{
-    //convert target to local coordiantes
-    // console.log(target_world);
-    let parent_D_inverse: Mat4 = this.parent_D.copy().inverse();
-    let T_inverse: Mat4 = this.translation_parent_this.copy().inverse();
-    // let R_inverse: Mat4 = this.rotation_local.copy().inverse();
+  // public target_rotation(target_world: Vec3): void{
+  //   //convert target to local coordiantes
+  //   // console.log(target_world);
+  //   let parent_D_inverse: Mat4 = this.parent_D.copy().inverse();
+  //   let T_inverse: Mat4 = this.translation_parent_this.copy().inverse();
+  //   // let R_inverse: Mat4 = this.rotation_local.copy().inverse();
 
 
-    let target_local: Vec3 = parent_D_inverse.my_mult_vec3(target_world);
-    target_local = T_inverse.my_mult_vec3(target_local);
-    // target_local = R_inverse.my_mult_vec3(target_local);
-    // console.log(target_local);
+  //   let target_local: Vec3 = parent_D_inverse.my_mult_vec3(target_world);
+  //   target_local = T_inverse.my_mult_vec3(target_local);
+  //   // target_local = R_inverse.my_mult_vec3(target_local);
+  //   // console.log(target_local);
 
-    //(0,0,0)
-    let position_local: Vec3 = new Vec3();
+  //   //(0,0,0)
+  //   let position_local: Vec3 = new Vec3();
     
-    let vec_position_endpoint: Vec3 = new Vec3();
-    this.endpoint_local.subtract(position_local, vec_position_endpoint);
-    vec_position_endpoint.normalize();
+  //   let vec_position_endpoint: Vec3 = new Vec3();
+  //   this.endpoint_local.subtract(position_local, vec_position_endpoint);
+  //   vec_position_endpoint.normalize();
 
-    let vec_position_target: Vec3 = new Vec3();
-    target_local.subtract(position_local, vec_position_target);
-    vec_position_target.normalize();
+  //   let vec_position_target: Vec3 = new Vec3();
+  //   target_local.subtract(position_local, vec_position_target);
+  //   vec_position_target.normalize();
 
-    let axis: Vec3 = Vec3.cross(vec_position_endpoint, vec_position_target);
-    axis.normalize();
+  //   let axis: Vec3 = Vec3.cross(vec_position_endpoint, vec_position_target);
+  //   axis.normalize();
 
-    let dot_product: number = Vec3.dot(vec_position_endpoint, vec_position_target);
-    let cross_product_length: number = Vec3.cross(vec_position_endpoint, vec_position_target).length();
-    let angle: number = Math.atan2(cross_product_length, dot_product);
-    let new_rotation: Quat = Quat.fromAxisAngle(axis, angle);
+  //   let dot_product: number = Vec3.dot(vec_position_endpoint, vec_position_target);
+  //   let cross_product_length: number = Vec3.cross(vec_position_endpoint, vec_position_target).length();
+  //   let angle: number = Math.atan2(cross_product_length, dot_product);
+  //   let new_rotation: Quat = Quat.fromAxisAngle(axis, angle);
 
-    this.rotation_local = new_rotation.toMat4();
-    // this.propogate(bones);
+  //   this.rotation_local = new_rotation.toMat4();
+  //   // this.propogate(bones);
+  // }
+  //axis is in world coordinates.
+  public rotate(axis: Vec3, angle: number){
+    let inverse_D: Mat4 = new Mat4;
+    this.get_D().copy().inverse(inverse_D);
+
+    let axis_local: Vec3 = inverse_D.multiplyVec3(axis);
+    let local_rotation: Quat = Quat.fromAxisAngle(axis_local, angle);
+    let local_rotation_mat: Mat4 = local_rotation.toMat4();
+
+    let new_local_rotation: Mat4 = new Mat4();
+    this.rotation_local.multiply(local_rotation_mat, new_local_rotation);
+    this.rotation_local = new_local_rotation;
+    
+
+    // this.rotation_local = Quat.fromAxisAngle(axis, angle).toMat4();
+    // this.test_rotation = Quat.fromAxisAngle(new Vec3([0, 0, 1]), angle);
+    // console.log(axis);
   }
   public get_endpoint(): Vec3{
-    return this.deprecated_endpoint.copy();
+    // return this.deprecated_endpoint.copy();
+    return this.get_D().my_mult_vec3(this.endpoint_local);
   }
 }
 
@@ -275,8 +299,12 @@ export class Mesh {
     // this.bones[1].propogate(this.bones);
   }
 
-  public target_rotation(bone_index: number, target_world: Vec3){
-    this.bones[bone_index].target_rotation(target_world);
+  // public target_rotation(bone_index: number, target_world: Vec3){
+  //   this.bones[bone_index].target_rotation(target_world);
+  //   this.bones[bone_index].propogate(this.bones);
+  // }
+  public rotate_bone(bone_index: number, axis: Vec3, angle: number){
+    this.bones[bone_index].rotate(axis, angle);
     this.bones[bone_index].propogate(this.bones);
   }
 

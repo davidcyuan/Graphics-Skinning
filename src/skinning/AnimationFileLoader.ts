@@ -235,18 +235,21 @@ class CLoader {
     this.meshes = [];
   }
 
-  public target_rotation(bone_index: number, target_world: Vec3): void{
-    this.meshes[0].target_rotation(bone_index, target_world);
-  }
-  public test_set_endpoint(endpoint_world: Vec3): void{
-    // this.meshes[0].test_set_endpoint(endpoint_world);
-  }
-  public get_bone_1_position(): Vec3{
-    return this.meshes[0].bones[1].get_position();
-  }
-  // public get_bone_1_end(): Vec3{
-  //   return this.meshes[0].bones[1].get_endpoint();
+
+  // public target_rotation(bone_index: number, target_world: Vec3): void{
+  //   this.meshes[0].target_rotation(bone_index, target_world);
   // }
+  //axis is in world coordiantes
+  public rotate_bone(bone_index: number, axis: Vec3, angle){
+    // this.meshes[0].bones[bone_index].rotate(axis, angle);
+    this.meshes[0].rotate_bone(bone_index, axis, angle);
+  }
+  public get_bone_position(bone_index): Vec3{
+    return this.meshes[0].bones[bone_index].get_position();
+  }
+  public get_bone_endpoint(bone_index): Vec3{
+    return this.meshes[0].bones[bone_index].get_endpoint();
+  }
   
 
   public load(callback: Function): void {

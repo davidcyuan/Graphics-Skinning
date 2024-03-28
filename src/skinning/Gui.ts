@@ -48,6 +48,7 @@ export class GUI implements IGUI {
 
   private selectedBone: number;
   public highlight: number;
+  // public bone_index: number;
   private boneDragging: boolean;
 
   public time: number;
@@ -72,6 +73,7 @@ export class GUI implements IGUI {
     this.prevX = 0;
     this.prevY = 0;
     this.highlight = -1.0;
+    this.selectedBone = -1;
     
     this.animation = animation;
     
@@ -156,7 +158,12 @@ export class GUI implements IGUI {
     }
 	
     // TODO: Add logic to rotate the bones, instead of moving the camera, if there is a currently highlighted bone
-    this.updateHighlightedBone(mouse.offsetX, mouse.offsetY);
+    let bone_index = this.updateHighlightedBone(mouse.offsetX, mouse.offsetY);
+    if(bone_index >-0.5){
+      this.selectedBone = bone_index;
+    }
+    // this.rotate_bone(0, mouse.offsetX, mouse.offsetY);
+    //
     
     this.dragging = true;
     if(this.highlight != -1.0){
@@ -164,7 +171,7 @@ export class GUI implements IGUI {
     }
     this.prevX = mouse.screenX;
     this.prevY = mouse.screenY;
-    console.log("screenX: ")
+    // console.log("screenX: ")
   }
 
   public incrementTime(dT: number): void {
@@ -188,10 +195,16 @@ export class GUI implements IGUI {
     let x = mouse.offsetX;
     let y = mouse.offsetY;
     this.updateHighlightedBone(x, y);
-    console.log(this.highlight);
+    //always rotate bone 1 to mouse
+      // this.rotate_bone(1, x, y);
+
+
+
+    //
+    // console.log(this.highlight);
     if (this.dragging) {
-      if(this.boneDragging){
-        //add rotation logic here
+      if(this.selectedBone > -0.5){
+        this.rotate_bone(this.selectedBone, x, y);
       } else{
       const dx = mouse.screenX - this.prevX;
       const dy = mouse.screenY - this.prevY;
@@ -262,34 +275,101 @@ export class GUI implements IGUI {
    * Callback function for a key press event
    * @param key
    */
+
+  public rotate_bone(bone_index: number, mouseX: number, mouseY): void{
+    let view_matrix: Mat4 = this.viewMatrix();
+    let inverse_view_matrix: Mat4 = new Mat4();
+    view_matrix.inverse(inverse_view_matrix);
+
+    let proj_matrix: Mat4 = this.projMatrix();
+    let inverse_proj_matrix: Mat4 = new Mat4();
+    proj_matrix.inverse(inverse_proj_matrix);
+
+    //get bone NDC
+    let bone_position_NDC: Vec3 = this.animation.get_bone_position(bone_index);
+    bone_position_NDC = view_matrix.my_mult_vec3(bone_position_NDC);
+    bone_position_NDC = proj_matrix.my_mult_vec3(bone_position_NDC);
+
+    let bone_endpoint_NDC: Vec3 = this.animation.get_bone_endpoint(bone_index);
+    bone_endpoint_NDC = view_matrix.my_mult_vec3(bone_endpoint_NDC);
+    bone_endpoint_NDC = proj_matrix.my_mult_vec3(bone_endpoint_NDC);
+    // console.log(bone_endpoint_NDC.copy());
+
+    let new_E_proj: Vec3 = this.mouse_to_NDC_point(mouseX, mouseY);
+    // console.log(new_E_proj.copy());
+    // console.log(bone_position_NDC);
+
+    //get 3 rotation points in NDC
+    let center: Vec3 = new Vec3([bone_position_NDC.x, bone_position_NDC.y, -1]);
+    let old: Vec3 = new Vec3([bone_endpoint_NDC.x, bone_endpoint_NDC.y, -1]);
+    let neww: Vec3 = new Vec3([new_E_proj.x, new_E_proj.y, -1]);
+    console.log(center.copy());
+    console.log(old.copy());
+    console.log(neww.copy());
+
+    //conver to camera???
+    center = inverse_proj_matrix.my_mult_vec3(center);
+    old = inverse_proj_matrix.my_mult_vec3(old);
+    neww = inverse_proj_matrix.my_mult_vec3(neww);
+
+    let vec_center_old: Vec3 = new Vec3();
+    old.subtract(center, vec_center_old);
+    vec_center_old.normalize();
+
+    let vec_center_neww: Vec3 = new Vec3();
+    neww.subtract(center, vec_center_neww);
+    vec_center_neww.normalize();
+
+    let axis: Vec3 = Vec3.cross(vec_center_old, vec_center_neww);
+    axis.normalize();
+    let dot_product: number = Vec3.dot(vec_center_old, vec_center_neww);
+    let cross_product_length: number = Vec3.cross(vec_center_old, vec_center_neww).length();
+    let angle: number = Math.atan2(cross_product_length, dot_product);
+
+    //convert axis from camera to world
+    axis = inverse_view_matrix.multiplyVec3(axis);
+
+    this.animation.rotate_bone(bone_index, axis, angle);
+
+
+
+    // let new_E_view: Vec3 = inverse_proj_matrix.my_mult_vec3(new_E_proj);
+    // // let new_E_view: Vec3 = new Vec3([1, 1, -7]);
+
+    // let new_E_world: Vec3 = inverse_view_matrix.my_mult_vec3(new_E_view);
+    // this.animation.target_rotation(bone_index, new_E_world);    
+  }
+  
   public onKeydown(key: KeyboardEvent): void {
     switch (key.code) {
       //testtting key
+      //rotate bone 1
       case "KeyT": {
-        //get bone[1]'s position
-        
-        let view_matrix: Mat4 = this.viewMatrix();
-        let inverse_view_matrix: Mat4 = new Mat4();
-        view_matrix.inverse(inverse_view_matrix);
 
-        let new_E_view: Vec4 = new Vec4([1, 1, -7, 1]);
-        let new_E_world_h: Vec4 = inverse_view_matrix.multiplyVec4(new_E_view);
-        let new_E_world: Vec3 = new Vec3([new_E_world_h.x, new_E_world_h.y, new_E_world_h.z]);
-        this.animation.target_rotation(1, new_E_world);
+
+
+        // //get bone[1]'s position
+        // let view_matrix: Mat4 = this.viewMatrix();
+        // let inverse_view_matrix: Mat4 = new Mat4();
+        // view_matrix.inverse(inverse_view_matrix);
+
+        // let new_E_view: Vec4 = new Vec4([1, 1, -7, 1]);
+        // let new_E_world_h: Vec4 = inverse_view_matrix.multiplyVec4(new_E_view);
+        // let new_E_world: Vec3 = new Vec3([new_E_world_h.x, new_E_world_h.y, new_E_world_h.z]);
+        // this.animation.target_rotation(1, new_E_world);
 
         break;
       }
+      //rotate bone 0
       case "KeyY": {
-        //get bone[1]'s position
-        
-        let view_matrix: Mat4 = this.viewMatrix();
-        let inverse_view_matrix: Mat4 = new Mat4();
-        view_matrix.inverse(inverse_view_matrix);
+        // let view_matrix: Mat4 = this.viewMatrix();
+        // let inverse_view_matrix: Mat4 = new Mat4();
+        // view_matrix.inverse(inverse_view_matrix);
 
-        let new_E_view: Vec4 = new Vec4([1, 1, -7, 1]);
-        let new_E_world_h: Vec4 = inverse_view_matrix.multiplyVec4(new_E_view);
-        let new_E_world: Vec3 = new Vec3([new_E_world_h.x, new_E_world_h.y, new_E_world_h.z]);
-        this.animation.target_rotation(0, new_E_world);
+        // let new_E_view: Vec4 = new Vec4([1, 1, -7, 1]);
+        // let new_E_world_h: Vec4 = inverse_view_matrix.multiplyVec4(new_E_view);
+        // let new_E_world: Vec3 = new Vec3([new_E_world_h.x, new_E_world_h.y, new_E_world_h.z]);
+        // this.animation.target_rotation(0, new_E_world);
 
         break;
       }
@@ -424,6 +504,15 @@ export class GUI implements IGUI {
     const ray = Vec3.difference(new Vec3(mouseWorld.xyz), this.camera.pos()).normalize();
     return ray;
   }
+  public mouse_to_NDC_point(mouseX: number, mouseY): Vec3 {
+    const x = (2 * mouseX) / this.width - 1;
+    const y = 1 - (2 * mouseY) / this.viewPortHeight;
+    return new Vec3([x, y, -1]);
+    // const mouseNormal = new Vec4([x, y, -1, 1]);
+    // const mouseCamera = this.projMatrix().inverse().multiplyVec4(mouseNormal);
+    // mouseCamera.scale(1 / mouseCamera.w);
+    // return new Vec3([mouseCamera.x, mouseCamera.y, mouseCamera.z]);
+  }
 
   public intersectCylinder(bone: Bone, cameraPosition: Vec3, rayDirection: Vec3) {
     const radius = .1; 
@@ -478,7 +567,7 @@ export class GUI implements IGUI {
 
 }
 
-public updateHighlightedBone(mouseX: number, mouseY: number): void {
+public updateHighlightedBone(mouseX: number, mouseY: number): number {
   const rayDirection = this.screen_to_world_ray(mouseX, mouseY);
 
   let closestBoneIndex = -1;
@@ -497,6 +586,7 @@ public updateHighlightedBone(mouseX: number, mouseY: number): void {
   // console.log("found a highlighted bone at");
   // console.log(closestBoneIndex);
   this.highlight = closestBoneIndex;
+  return closestBoneIndex;
 }
 
 }
