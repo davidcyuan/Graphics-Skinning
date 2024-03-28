@@ -1,4 +1,6 @@
 # Graphics-Skinning
+David Yuan, Sophia Li
+
 Bone Picking:
   Moving the cursor over a bone will highlight it, as well as selecting it for any potential bone manipulation actions.
   Release the mouse button will reset the highlight/selections, so you must move the mouse again to use this feature.
