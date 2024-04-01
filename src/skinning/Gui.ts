@@ -60,7 +60,9 @@ export class GUI implements IGUI {
   private default_z: number = 69;
 
   private key_frame_one: Mat4[];
-  private key_frame_two: Mat4[];
+  private starting_key: Mat4[];
+  private starting_time: number;
+  private animating: boolean;
 
   /**
    *
@@ -79,7 +81,9 @@ export class GUI implements IGUI {
     this.animation = animation;
 
     this.key_frame_one = [];
-    this.key_frame_two = [];
+    this.starting_key = [];
+    this.starting_time = 0;
+    this.animating = false;
     
     this.reset();
     
@@ -348,6 +352,36 @@ export class GUI implements IGUI {
     // this.animation.target_rotation(bone_index, new_E_world);    
   }
   
+  public animate(): void{
+    if(this.animating){
+      let start_time: number = this.starting_time;
+      let end_time: number = start_time + 1000;
+      let total_time: number = 1000;
+      let current_time: number = new Date().getTime();
+      
+      if(current_time < end_time){
+        let delta: number = (current_time - start_time) / total_time;
+        let slerp_key: Mat4[] = [];
+        for(var bone_index = 0; bone_index < this.starting_key.length; bone_index++){
+          let start_rotation_i: Mat4 = this.starting_key[bone_index];
+          let end_rotation_i: Mat4 = this.key_frame_one[bone_index];
+  
+          let start_quat: Quat = start_rotation_i.get_rotation_Quat();
+          let end_quat: Quat = end_rotation_i.get_rotation_Quat();
+          let slerp_quat: Quat = Quat.slerpShort(start_quat, end_quat, delta);
+          let slerp_rotation: Mat4 = slerp_quat.toMat4();
+          slerp_key[bone_index] = slerp_rotation;
+        }
+
+        // this.animation.set_key_frame(this.key_frame_one);
+        this.animation.set_key_frame(slerp_key);
+      }
+      else{
+        this.animating = false;
+      }
+    }
+  }
+
   public onKeydown(key: KeyboardEvent): void {
     switch (key.code) {
       case "KeyT": {
@@ -356,6 +390,15 @@ export class GUI implements IGUI {
       }
       case "KeyY": {
         this.animation.set_key_frame(this.key_frame_one);
+        break;
+      }
+      case "KeyU": {
+        //animate to key_frame_one
+        // let starting_key: Mat4[] = this.animation.get_key_frame();
+        this.starting_key = this.animation.get_key_frame();
+        // let ending_key: Mat4[] = this.key_frame_one;
+        this.starting_time = new Date().getTime();
+        this.animating = true;
         break;
       }
       case "Digit1": {

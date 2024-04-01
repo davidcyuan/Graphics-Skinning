@@ -308,6 +308,9 @@ export class SkinningAnimation extends CanvasAnimation {
    *
    */
   public draw(): void {
+    // console.log("drawing:");
+    this.getGUI().animate();
+
     // Update skeleton state
     let curr = new Date().getTime();
     let deltaT = curr - this.millis;
