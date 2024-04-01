@@ -254,6 +254,13 @@ class CLoader {
     this.meshes[0].roll_bone(bone_index, angle, axis_sign);
   }
   
+  public get_key_frame(): Mat4[]{
+    return this.meshes[0].get_local_rotations();
+  }
+  public set_key_frame(key_frame: Mat4[]): void{
+    this.meshes[0].set_local_rotations(key_frame);
+  }
+
 
   public load(callback: Function): void {
     this.loader.load(this.fileLocation, (collada: Collada) => {

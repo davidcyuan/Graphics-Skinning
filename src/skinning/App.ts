@@ -91,15 +91,20 @@ export class SkinningAnimation extends CanvasAnimation {
   public get_bone_endpoint(bone_index: number): Vec3{
     return this.scene.get_bone_endpoint(bone_index);
   }
-  // public target_rotation(bone_index: number, target_world: Vec3): void{
-  //   this.scene.target_rotation(bone_index, target_world);
-  // }
   public rotate_bone(bone_index: number, axis: Vec3, angle: number): void{
     this.scene.rotate_bone(bone_index, axis, angle);
   }
   public roll_bone(bone_index: number, angle: number, axis_sign: boolean){
     this.scene.roll_bone(bone_index, angle, axis_sign);
   }
+
+  public get_key_frame(): Mat4[]{
+    return this.scene.get_key_frame();
+  }
+  public set_key_frame(key_frame: Mat4[]): void{
+    this.scene.set_key_frame(key_frame);
+  }
+
   public getScene(): CLoader {
     return this.scene;
   }

@@ -53,7 +53,6 @@ export class Bone {
   public starting_position_world: Vec3;
   public translation_parent_this: Mat4
   public parent_D: Mat4;
-  public U: Mat4;
 
   public test_rotation: Quat;
 
@@ -101,12 +100,6 @@ export class Bone {
       bones[child_index].propogate(bones);
     }
   }
-  public calculate_U(): void{
-    this.U = this.get_D().copy();
-  }
-  public get_U(): Mat4{
-    return this.U.copy();
-  }
 
   public get_D(): Mat4{
     //D
@@ -117,10 +110,11 @@ export class Bone {
     D.multiply(this.rotation_local);
     return D;
   }
+  //world position of starting point
   public get_position(): Vec3{
     return this.get_D().get_position_Vec3();
   }
-
+  //world rotation
   public get_rotation(): Quat{
     return this.get_D().get_rotation_Quat().copy();
   }
@@ -152,6 +146,16 @@ export class Bone {
   }
   public get_endpoint(): Vec3{
     return this.get_D().my_mult_vec3(this.endpoint_local);
+  }
+
+  //return local rotation
+  public get_local_rotation(): Mat4{
+    return this.rotation_local.copy();
+  }
+  //remember to propogate!!
+  public set_local_rotation(local_rotation: Mat4, bones: Bone[]): void{
+    this.rotation_local = local_rotation.copy();
+    this.propogate(bones);
   }
 }
 
@@ -193,10 +197,6 @@ export class Mesh {
         bone.propogate(this.bones);
       }
     }
-    for(var bone_index in this.bones){
-      let bone: Bone = this.bones[bone_index];
-      bone.calculate_U();
-    }
     this.materialName = mesh.materialName;
     this.imgSrc = null;
     this.boneIndices = Array.from(mesh.boneIndices);
@@ -206,11 +206,6 @@ export class Mesh {
     //ttt
     // this.bones[1].propogate(this.bones);
   }
-
-  // public target_rotation(bone_index: number, target_world: Vec3){
-  //   this.bones[bone_index].target_rotation(target_world);
-  //   this.bones[bone_index].propogate(this.bones);
-  // }
   public rotate_bone(bone_index: number, axis: Vec3, angle: number){
     this.bones[bone_index].rotate(axis, angle);
     this.bones[bone_index].propogate(this.bones);
@@ -254,5 +249,19 @@ export class Mesh {
       }
     });
     return trans;
+  }
+
+  //keyframes
+  public get_local_rotations(): Mat4[]{
+    let local_rotations: Mat4[] = [];
+    for(var bone_index = 0; bone_index < this.bones.length; bone_index++){
+      local_rotations.push(this.bones[bone_index].get_local_rotation());
+    }
+    return local_rotations;
+  }
+  public set_local_rotations(local_rotations: Mat4[]): void{
+    for(var bone_index = 0; bone_index < this.bones.length; bone_index++){
+      this.bones[bone_index].set_local_rotation(local_rotations[bone_index].copy(), this.bones);
+    }
   }
 }

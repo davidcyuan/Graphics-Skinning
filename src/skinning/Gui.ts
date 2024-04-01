@@ -59,6 +59,8 @@ export class GUI implements IGUI {
 
   private default_z: number = 69;
 
+  private key_frame_one: Mat4[];
+  private key_frame_two: Mat4[];
 
   /**
    *
@@ -74,8 +76,10 @@ export class GUI implements IGUI {
     this.prevY = 0;
     this.highlight = -1.0;
     this.selectedBone = -1;
-    
     this.animation = animation;
+
+    this.key_frame_one = [];
+    this.key_frame_two = [];
     
     this.reset();
     
@@ -346,6 +350,14 @@ export class GUI implements IGUI {
   
   public onKeydown(key: KeyboardEvent): void {
     switch (key.code) {
+      case "KeyT": {
+        this.key_frame_one = this.animation.get_key_frame();
+        // break;
+      }
+      case "KeyY": {
+        this.animation.set_key_frame(this.key_frame_one);
+        break;
+      }
       case "Digit1": {
         this.animation.setScene("./static/assets/skinning/split_cube.dae");
         break;
