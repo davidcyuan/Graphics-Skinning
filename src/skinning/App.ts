@@ -46,6 +46,9 @@ export class SkinningAnimation extends CanvasAnimation {
   private lightPosition: Vec4;
   private backgroundColor: Vec4;
 
+  /* Keyframe info */
+  private keyframeTextures: WebGLTexture[] = [];
+
   private canvas2d: HTMLCanvasElement;
   private ctx2: CanvasRenderingContext2D | null;
 
@@ -134,6 +137,7 @@ export class SkinningAnimation extends CanvasAnimation {
     if (this.scene.meshes.length === 0) { return; }
     this.initModel();
     this.initSkeleton();
+    this.renderKeyframesToTextures();
     this.gui.reset();
   }
 
@@ -338,7 +342,8 @@ export class SkinningAnimation extends CanvasAnimation {
     gl.cullFace(gl.BACK);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null); // null is the default frame buffer
-    this.drawScene(0, 200, 800, 600);    
+    this.drawScene(0, 200, 800, 600); 
+    //this.drawKeyframes();   
 
     /* Draw status bar */
     if (this.scene.meshes.length > 0) {
@@ -377,11 +382,67 @@ export class SkinningAnimation extends CanvasAnimation {
     this.scene = new CLoader(fileLocation);
     this.scene.load(() => this.initScene());
   }
+
+  private renderKeyframesToTextures(): void {
+    const keyframes = this.scene.get_key_frame(); // Get keyframes from your scene
+console.log(keyframes.length);
+    // Iterate over each keyframe and render it to a texture
+    for (let i = 0; i < keyframes.length; i++) {
+      const keyframe = keyframes[i];
+      const texture = this.createTextureForFrame(keyframe); // Implement this method
+      if(texture != null){
+        this.keyframeTextures.push(texture);
+      }
+    }
+  }
+
+  private createTextureForFrame(keyframe: Mat4): WebGLTexture | null{
+    const targetTexture = this.ctx.createTexture();
+    this.ctx.bindTexture(this.ctx.TEXTURE_2D, targetTexture);
+  
+    this.ctx.texImage2D(this.ctx.TEXTURE_2D, 0, this.ctx.RGBA, 320, 256, 0, this.ctx.RGBA, this.ctx.UNSIGNED_BYTE, null);
+    this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_MIN_FILTER, this.ctx.LINEAR);
+    this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_S, this.ctx.CLAMP_TO_EDGE);
+    this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_T, this.ctx.CLAMP_TO_EDGE);
+  
+    // Bind the FBO and attach the texture to it
+    const fb = this.ctx.createFramebuffer();
+    this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, fb);
+    this.ctx.framebufferTexture2D(this.ctx.FRAMEBUFFER, this.ctx.COLOR_ATTACHMENT0, this.ctx.TEXTURE_2D, targetTexture, 0);
+    this.ctx.clearColor(0, 0, 0, 1); // Set clear color to black
+    this.ctx.clear(this.ctx.COLOR_BUFFER_BIT);
+    return targetTexture;
+  }
+
+  private drawKeyframes(): void {
+    const gl: WebGLRenderingContext = this.ctx;
+    console.log("here");
+    // Set up an orthographic projection matrix for the preview panel
+    const previewWidth = 320; // Width of the preview panel
+    const previewHeight = 800; // Height of the preview panel
+    const previewProjectionMatrix = Mat4.orthographic(-previewWidth / 2, previewWidth / 2, -previewHeight / 2, previewHeight / 2, -1, 1);
+
+    // Render each keyframe texture as a textured quad
+    this.ctx2?.clearRect(800, 0, 320, 800);
+    gl.viewport(800, 0, 320, 800); // Set viewport for the preview panel
+    for (let i = 0; i < this.keyframeTextures.length; i++) {
+        const texture = this.keyframeTextures[i];
+
+        // Set up texture and render the quad
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        // ... (your rendering code for a textured quad here)
+        // Use the previewProjectionMatrix to position the quad vertically
+    }
+}
+
+
+
 }
 
 export function initializeCanvas(): void {
   const canvas = document.getElementById("glCanvas") as HTMLCanvasElement;
   /* Start drawing */
+  canvas.width += 320;
   const canvasAnimation: SkinningAnimation = new SkinningAnimation(canvas);
   canvasAnimation.start();
   canvasAnimation.setScene("./static/assets/skinning/split_cube.dae");
