@@ -116,13 +116,14 @@ export class GUI implements IGUI {
     this.fps = false;
     this.dragging = false;
     this.time = 0;
-	this.mode = Mode.edit;
-  this.highlight = -1.0;
-  this.selectedBone = -1;
-  this.starting_key = [];
-  this.starting_time = 0;
-  this.animating = false;
-    
+	  this.mode = Mode.edit;
+    this.highlight = -1.0;
+    this.selectedBone = -1;
+    this.starting_key = [];
+    this.starting_time = 0;
+    this.animating = false;
+    this.key_frames = [];
+
     this.camera = new Camera(
       new Vec3([0, 0, -6]),
       new Vec3([0, 0, 0]),
@@ -324,9 +325,6 @@ export class GUI implements IGUI {
     let center: Vec3 = new Vec3([bone_position_NDC.x, bone_position_NDC.y, -1]);
     let old: Vec3 = new Vec3([bone_endpoint_NDC.x, bone_endpoint_NDC.y, -1]);
     let neww: Vec3 = new Vec3([new_E_proj.x, new_E_proj.y, -1]);
-    console.log(center.copy());
-    console.log(old.copy());
-    console.log(neww.copy());
 
     //conver to camera???
     center = inverse_proj_matrix.my_mult_vec3(center);
@@ -416,10 +414,12 @@ export class GUI implements IGUI {
       }
       case "KeyP": {
         //animate to key_frame_one
-        this.starting_key = this.animation.get_key_frame();
-        this.starting_time = new Date().getTime();
-        this.ending_key_index = 0;
-        this.animating = true;
+        if(this.key_frames.length > 0){
+          this.starting_key = this.animation.get_key_frame();
+          this.starting_time = new Date().getTime();
+          this.ending_key_index = 0;
+          this.animating = true;
+        }
         break;
       }
       case "Digit1": {
