@@ -59,7 +59,10 @@ export class GUI implements IGUI {
 
   private default_z: number = 69;
 
-  private key_frame_one: Mat4[];
+  // private key_frame_one: Mat4[];
+  private key_frames: Mat4[][];
+
+
   private starting_key: Mat4[];
   private starting_time: number;
   private animating: boolean;
@@ -80,7 +83,7 @@ export class GUI implements IGUI {
     this.selectedBone = -1;
     this.animation = animation;
 
-    this.key_frame_one = [];
+    this.key_frames = [];
     this.starting_key = [];
     this.starting_time = 0;
     this.animating = false;
@@ -364,7 +367,7 @@ export class GUI implements IGUI {
         let slerp_key: Mat4[] = [];
         for(var bone_index = 0; bone_index < this.starting_key.length; bone_index++){
           let start_rotation_i: Mat4 = this.starting_key[bone_index];
-          let end_rotation_i: Mat4 = this.key_frame_one[bone_index];
+          let end_rotation_i: Mat4 = this.key_frames[0][bone_index];
   
           let start_quat: Quat = start_rotation_i.get_rotation_Quat();
           let end_quat: Quat = end_rotation_i.get_rotation_Quat();
@@ -384,12 +387,13 @@ export class GUI implements IGUI {
 
   public onKeydown(key: KeyboardEvent): void {
     switch (key.code) {
-      case "KeyT": {
-        this.key_frame_one = this.animation.get_key_frame();
-        // break;
+      case "KeyK": {
+        // this.key_frame_one = this.animation.get_key_frame();
+        this.key_frames.push(this.animation.get_key_frame());
+        break;
       }
       case "KeyY": {
-        this.animation.set_key_frame(this.key_frame_one);
+        this.animation.set_key_frame(this.key_frames[0]);
         break;
       }
       case "KeyU": {
