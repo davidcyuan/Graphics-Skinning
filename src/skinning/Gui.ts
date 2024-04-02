@@ -66,6 +66,7 @@ export class GUI implements IGUI {
   private starting_key: Mat4[];
   private starting_time: number;
   private animating: boolean;
+  private ending_key_index: number;
 
   /**
    *
@@ -85,8 +86,9 @@ export class GUI implements IGUI {
 
     this.key_frames = [];
     this.starting_key = [];
-    this.starting_time = 0;
+    this.starting_time = -1;
     this.animating = false;
+    this.ending_key_index = -1;
     
     this.reset();
     
@@ -116,6 +118,10 @@ export class GUI implements IGUI {
     this.time = 0;
 	this.mode = Mode.edit;
   this.highlight = -1.0;
+  this.selectedBone = -1;
+  this.starting_key = [];
+  this.starting_time = 0;
+  this.animating = false;
     
     this.camera = new Camera(
       new Vec3([0, 0, -6]),
@@ -367,7 +373,7 @@ export class GUI implements IGUI {
         let slerp_key: Mat4[] = [];
         for(var bone_index = 0; bone_index < this.starting_key.length; bone_index++){
           let start_rotation_i: Mat4 = this.starting_key[bone_index];
-          let end_rotation_i: Mat4 = this.key_frames[0][bone_index];
+          let end_rotation_i: Mat4 = this.key_frames[this.ending_key_index][bone_index];
   
           let start_quat: Quat = start_rotation_i.get_rotation_Quat();
           let end_quat: Quat = end_rotation_i.get_rotation_Quat();
@@ -380,7 +386,19 @@ export class GUI implements IGUI {
         this.animation.set_key_frame(slerp_key);
       }
       else{
-        this.animating = false;
+        this.ending_key_index++;
+        if(this.ending_key_index < this.key_frames.length){
+          //next bone
+          this.starting_time = new Date().getTime();
+          this.starting_key = this.animation.get_key_frame();
+        }
+        else{
+          this.starting_time = -1;
+          this.starting_key = [];
+          this.ending_key_index = -1;
+          this.animating = false;
+        }
+        
       }
     }
   }
@@ -396,12 +414,11 @@ export class GUI implements IGUI {
         this.animation.set_key_frame(this.key_frames[0]);
         break;
       }
-      case "KeyU": {
+      case "KeyP": {
         //animate to key_frame_one
-        // let starting_key: Mat4[] = this.animation.get_key_frame();
         this.starting_key = this.animation.get_key_frame();
-        // let ending_key: Mat4[] = this.key_frame_one;
         this.starting_time = new Date().getTime();
+        this.ending_key_index = 0;
         this.animating = true;
         break;
       }
@@ -497,20 +514,20 @@ export class GUI implements IGUI {
         }
         break;
       }      
-      case "KeyP": {
-        if (this.mode === Mode.edit && this.getNumKeyFrames() > 1)
-        {
-          this.mode = Mode.playback;
-          this.time = 0;
-        } else if (this.mode === Mode.playback) {
-          this.mode = Mode.edit;
-        }
-        break;
-      }
-      default: {
-        console.log("Key : '", key.code, "' was pressed.");
-        break;
-      }
+      // case "KeyP": {
+      //   if (this.mode === Mode.edit && this.getNumKeyFrames() > 1)
+      //   {
+      //     this.mode = Mode.playback;
+      //     this.time = 0;
+      //   } else if (this.mode === Mode.playback) {
+      //     this.mode = Mode.edit;
+      //   }
+      //   break;
+      // }
+      // default: {
+      //   console.log("Key : '", key.code, "' was pressed.");
+      //   break;
+      // }
     }
   }
 
