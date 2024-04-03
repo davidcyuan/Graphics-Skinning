@@ -100,6 +100,9 @@ export class SkinningAnimation extends CanvasAnimation {
   public roll_bone(bone_index: number, angle: number, axis_sign: boolean){
     this.scene.roll_bone(bone_index, angle, axis_sign);
   }
+  public translate_bone(bone_index: number, translation_world: Vec3):void{
+    this.scene.translate_bone(bone_index, translation_world);
+  }
 
   public get_key_frame(): Mat4[]{
     return this.scene.get_key_frame();

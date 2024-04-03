@@ -175,24 +175,14 @@ export class GUI implements IGUI {
       return;
     }
 	
-    // TODO: Add logic to rotate the bones, instead of moving the camera, if there is a currently highlighted bone
     this.updateHighlightedBone(mouse.offsetX, mouse.offsetY);
     if(this.selectedBone > -0.5){
       this.boneDragging = true;
     }
-    // if(bone_index >-0.5){
-    //   this.selectedBone = bone_index;
-    // }
-    // this.rotate_bone(0, mouse.offsetX, mouse.offsetY);
-    //
     
     this.dragging = true;
-    if(this.highlight != -1.0){
-      //logic for rotations
-    }
     this.prevX = mouse.screenX;
     this.prevY = mouse.screenY;
-    // console.log("screenX: ")
   }
 
   public incrementTime(dT: number): void {
@@ -215,19 +205,22 @@ export class GUI implements IGUI {
   public drag(mouse: MouseEvent): void {
     let x = mouse.offsetX;
     let y = mouse.offsetY;
-    // this.selectedBone = this.updateHighlightedBone(x, y);
-
-    // console.log(this.boneDragging);
     
     if(this.dragging == false && this.boneDragging == false){
-      // console.log("here");
       this.selectedBone = this.updateHighlightedBone(x, y);
     }
 
     if (this.dragging) {
       if(this.boneDragging){
-        this.rotate_bone(this.selectedBone, x, y);
-      } else{
+        if(mouse.buttons == 1){
+          this.rotate_bone(this.selectedBone, x, y);
+        }
+        else if(mouse.buttons == 2){
+          //translate bone
+          this.trans_bone(this.selectedBone, x, y);
+        }
+      }
+      else{
       const dx = mouse.screenX - this.prevX;
       const dy = mouse.screenY - this.prevY;
       this.prevX = mouse.screenX;
@@ -315,18 +308,15 @@ export class GUI implements IGUI {
     let bone_endpoint_NDC: Vec3 = this.animation.get_bone_endpoint(bone_index);
     bone_endpoint_NDC = view_matrix.my_mult_vec3(bone_endpoint_NDC);
     bone_endpoint_NDC = proj_matrix.my_mult_vec3(bone_endpoint_NDC);
-    // console.log(bone_endpoint_NDC.copy());
 
     let new_E_proj: Vec3 = this.mouse_to_NDC_point(mouseX, mouseY);
-    // console.log(new_E_proj.copy());
-    // console.log(bone_position_NDC);
 
     //get 3 rotation points in NDC
     let center: Vec3 = new Vec3([bone_position_NDC.x, bone_position_NDC.y, -1]);
     let old: Vec3 = new Vec3([bone_endpoint_NDC.x, bone_endpoint_NDC.y, -1]);
     let neww: Vec3 = new Vec3([new_E_proj.x, new_E_proj.y, -1]);
 
-    //conver to camera???
+    //conver to camera
     center = inverse_proj_matrix.my_mult_vec3(center);
     old = inverse_proj_matrix.my_mult_vec3(old);
     neww = inverse_proj_matrix.my_mult_vec3(neww);
@@ -348,15 +338,89 @@ export class GUI implements IGUI {
     //convert axis from camera to world
     axis = inverse_view_matrix.multiplyVec3(axis);
 
-    this.animation.rotate_bone(bone_index, axis, angle);
+    this.animation.rotate_bone(bone_index, axis, angle);  
+  }
+  public trans_bone(bone_index: number, mouseX: number, mouseY: number): void{
+    //get matricies
+    let view_matrix: Mat4 = this.viewMatrix();
+    let inverse_view_matrix: Mat4 = new Mat4();
+    view_matrix.inverse(inverse_view_matrix);
+    let proj_matrix: Mat4 = this.projMatrix();
+    let inverse_proj_matrix: Mat4 = new Mat4();
+    proj_matrix.inverse(inverse_proj_matrix);
 
+    //get bone NDC
+    let bone_position_world: Vec3 = this.animation.get_bone_position(bone_index);
+    let bone_position_view: Vec3 = view_matrix.my_mult_vec3(bone_position_world);
+    let bone_position_NDC: Vec3 = proj_matrix.my_mult_vec3(bone_position_view);
+    // console.log("bone_pos_NDC");
+    // console.log(bone_position_NDC.copy());
+    let mouse_NDC: Vec3 = this.mouse_to_NDC_point(mouseX, mouseY);
 
+    //get translation points, in NDC
+    
+    // let old_point: Vec3 = new Vec3([bone_position_NDC.x, bone_position_NDC.y, -1]);
+    // let old_point_2: Vec3 = new Vec3([bone_position_NDC.x, bone_position_NDC.y, 0.5]);
+    // console.log("old point");
+    // console.log(old_point.copy());
+    let new_point: Vec3 = new Vec3([mouse_NDC.x, mouse_NDC.y, bone_position_NDC.z]);
+    // let new_point: Vec3 = new Vec3([0.5, 0.5, -1]);
+    // console.log("new point");
+    // console.log(new_point.copy());
 
-    // let new_E_view: Vec3 = inverse_proj_matrix.my_mult_vec3(new_E_proj);
-    // // let new_E_view: Vec3 = new Vec3([1, 1, -7]);
+    //conver to camera
+    // console.log("old ndc");
+    // console.log(old_point);
+    // console.log("old2 ndc");
+    // console.log(old_point_2);
+    // console.log("new ndc");
+    // console.log(new_point);
+    
 
-    // let new_E_world: Vec3 = inverse_view_matrix.my_mult_vec3(new_E_view);
-    // this.animation.target_rotation(bone_index, new_E_world);    
+    // old_point = inverse_proj_matrix.my_mult_vec3(old_point);
+    // old_point_2 = inverse_proj_matrix.my_mult_vec3(old_point_2);
+    new_point = inverse_proj_matrix.my_mult_vec3(new_point);
+    let trans_cam: Vec3 = new Vec3();
+    new_point.subtract(bone_position_view, trans_cam);
+
+    // old_point.add(trans);
+    // old_point_2.add(trans);
+    // console.log("old view");
+    // console.log(old_point);
+    // console.log("new view");
+    // console.log(new_point);
+
+    // old_point = proj_matrix.my_mult_vec3(old_point);
+    // old_point_2 = proj_matrix.my_mult_vec3(old_point_2);
+    // new_point = proj_matrix.my_mult_vec3(new_point);
+    // console.log("old ndc2");
+    // console.log(old_point);
+    // console.log("old2 ndc2");
+    // console.log(old_point_2);
+    // console.log("new ndc2");
+    // console.log(new_point);
+
+    //translation vector
+    // let translation_cam: Vec3 = new Vec3();
+    // new_point.subtract(old_point, translation_cam);
+    // console.log("translation");
+    // console.log(translation_cam);
+
+    //test
+    // let bone_pos_cam: Vec3 = this.animation.get_bone_position(bone_index);
+    // bone_pos_cam = view_matrix.my_mult_vec3(bone_pos_cam);
+    // bone_pos_cam.add(translation_cam);
+    // let bone_pos_NDC = proj_matrix.my_mult_vec3(bone_pos_cam);
+    // // console.log("bone_ndc_2_preadd");
+    // // console.log(bone_pos_NDC.copy());
+    // // bone_pos_NDC.add(translation_cam);
+    // console.log("bone_ndc_2_postadd");
+    // console.log(bone_pos_NDC.copy());
+
+    //convert to world
+    let translation_world = inverse_view_matrix.multiplyVec3(trans_cam);
+
+    this.animation.translate_bone(bone_index, translation_world);
   }
   
   public animate(): void{
