@@ -49,12 +49,10 @@ export class Bone {
   public position_local: Vec3;
   public endpoint_local: Vec3;
   public rotation_local: Mat4;
-
-  public starting_position_world: Vec3;
-  public translation_parent_this: Mat4
+  public translation_local: Mat4;
   public parent_D: Mat4;
 
-  public test_rotation: Quat;
+  public starting_position_world: Vec3;
 
   constructor(bone: BoneLoader) {
     this.parent = bone.parent;
@@ -66,24 +64,22 @@ export class Bone {
     bone.endpoint.copy().subtract(this.starting_position_world, this.endpoint_local);
 
     let starting_rotation: Quat = bone.rotation.copy();
-    this.test_rotation = bone.rotation.copy();
-    //check
     this.rotation_local = starting_rotation.toMat4();
   }
   //gets translation matrices
   public constructor_2(bones: Bone[]){
     if(this.parent < -0.5){
       //no parent
-      this.translation_parent_this = new Mat4().setIdentity();
-      this.translation_parent_this.set_position_Vec3(this.starting_position_world);
+      this.translation_local = new Mat4().setIdentity();
+      this.translation_local.set_position_Vec3(this.starting_position_world);
       this.parent_D = new Mat4().setIdentity();
     }
     else{
       // has parent
       let vec_parent_this: Vec3 = new Vec3;
       this.starting_position_world.subtract(bones[this.parent].starting_position_world, vec_parent_this);
-      this.translation_parent_this = new Mat4().setIdentity();
-      this.translation_parent_this.set_position_Vec3(vec_parent_this);
+      this.translation_local = new Mat4().setIdentity();
+      this.translation_local.set_position_Vec3(vec_parent_this);
       // this.parent_D = bones[this.parent].get_D();
     }
   }
@@ -105,7 +101,7 @@ export class Bone {
     //D
     let D: Mat4 = this.parent_D.copy();
     //D*T
-    D.multiply(this.translation_parent_this);
+    D.multiply(this.translation_local);
     //D*T*R
     D.multiply(this.rotation_local);
     return D;
@@ -130,6 +126,20 @@ export class Bone {
     let new_local_rotation: Mat4 = new Mat4();
     this.rotation_local.multiply(local_rotation_mat, new_local_rotation);
     this.rotation_local = new_local_rotation;
+  }
+  public translate(trans_world: Vec3){
+    //convert to local translation
+    let inverse_D: Mat4 = new Mat4();
+    //!!! wrong, account for local rotation
+    this.get_D().copy().inverse(inverse_D);
+
+    let trans_local: Vec3 = inverse_D.multiplyVec3(trans_world);
+    let trans_local_mat: Mat4 = new Mat4().setIdentity();
+    trans_local_mat.set_position_Vec3(trans_local);
+
+    let new_trans_local: Mat4 = new Mat4();
+    this.translation_local.multiply(trans_local_mat, new_trans_local);
+    this.translation_local = new_trans_local;
   }
   public roll(angle: number, axis_sign: boolean): void{
     let axis_local: Vec3 = new Vec3([this.endpoint_local.x, this.endpoint_local.y, this.endpoint_local.z]);
@@ -208,6 +218,10 @@ export class Mesh {
   }
   public rotate_bone(bone_index: number, axis: Vec3, angle: number){
     this.bones[bone_index].rotate(axis, angle);
+    this.bones[bone_index].propogate(this.bones);
+  }
+  public translate_bone(bone_index: number, trans_world: Vec3): void{
+    this.bones[bone_index].translate(trans_world);
     this.bones[bone_index].propogate(this.bones);
   }
   public roll_bone(bone_index: number, angle: number, axis_sign: boolean): void{

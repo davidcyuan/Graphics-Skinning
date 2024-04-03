@@ -236,14 +236,16 @@ class CLoader {
   }
 
 
-  // public target_rotation(bone_index: number, target_world: Vec3): void{
-  //   this.meshes[0].target_rotation(bone_index, target_world);
-  // }
+
   //axis is in world coordiantes
   public rotate_bone(bone_index: number, axis: Vec3, angle){
     // this.meshes[0].bones[bone_index].rotate(axis, angle);
     this.meshes[0].rotate_bone(bone_index, axis, angle);
   }
+  public translate_bone(bone_index: number, trans_world: Vec3): void{
+    this.meshes[0].translate_bone(bone_index, trans_world);
+  }
+
   public get_bone_position(bone_index): Vec3{
     return this.meshes[0].bones[bone_index].get_position();
   }
