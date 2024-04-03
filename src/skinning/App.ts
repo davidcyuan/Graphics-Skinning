@@ -13,7 +13,10 @@ import {
   skeletonFSText,
   skeletonVSText,
   sBackVSText,
-  sBackFSText
+  sBackFSText,
+  sideVSText, 
+  sideFSText
+
 } from "./Shaders.js";
 import { Mat4, Vec4, Vec3, Quat} from "../lib/TSM.js";
 import { CLoader } from "./AnimationFileLoader.js";
@@ -47,6 +50,7 @@ export class SkinningAnimation extends CanvasAnimation {
   private backgroundColor: Vec4;
 
   /* Keyframe info */
+  private sideBarPass: RenderPass;
   private keyframeTextures: WebGLTexture[] = [];
 
   private canvas2d: HTMLCanvasElement;
@@ -71,6 +75,8 @@ export class SkinningAnimation extends CanvasAnimation {
     this.floorRenderPass = new RenderPass(this.extVAO, gl, floorVSText, floorFSText);
     this.sceneRenderPass = new RenderPass(this.extVAO, gl, sceneVSText, sceneFSText);
     this.skeletonRenderPass = new RenderPass(this.extVAO, gl, skeletonVSText, skeletonFSText);
+    this.sideBarPass = new RenderPass(this.extVAO, gl, sideVSText, sideFSText);
+
 	//TODO: Add in other rendering initializations for other shaders such as bone highlighting
 
     this.gui = new GUI(this.canvas2d, this);
@@ -137,7 +143,6 @@ export class SkinningAnimation extends CanvasAnimation {
     if (this.scene.meshes.length === 0) { return; }
     this.initModel();
     this.initSkeleton();
-    this.renderKeyframesToTextures();
     this.gui.reset();
   }
 
@@ -341,7 +346,7 @@ export class SkinningAnimation extends CanvasAnimation {
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null); // null is the default frame buffer
     this.drawScene(0, 200, 800, 600); 
-    //this.drawKeyframes();   
+    this.drawKeyframes();   
 
     /* Draw status bar */
     if (this.scene.meshes.length > 0) {
@@ -381,60 +386,101 @@ export class SkinningAnimation extends CanvasAnimation {
     this.scene.load(() => this.initScene());
   }
 
-  private renderKeyframesToTextures(): void {
-    const keyframes = this.scene.get_key_frame(); // Get keyframes from your scene
-console.log(keyframes.length);
-    // Iterate over each keyframe and render it to a texture
-    for (let i = 0; i < keyframes.length; i++) {
-      const keyframe = keyframes[i];
-      const texture = this.createTextureForFrame(keyframe); // Implement this method
-      if(texture != null){
-        this.keyframeTextures.push(texture);
-      }
-    }
-  }
-
-  private createTextureForFrame(keyframe: Mat4): WebGLTexture | null{
+  public createTextureForFrame(keyframe: Mat4[]){
     const targetTexture = this.ctx.createTexture();
-    this.ctx.bindTexture(this.ctx.TEXTURE_2D, targetTexture);
+      this.ctx.bindTexture(this.ctx.TEXTURE_2D, targetTexture);
   
-    this.ctx.texImage2D(this.ctx.TEXTURE_2D, 0, this.ctx.RGBA, 320, 256, 0, this.ctx.RGBA, this.ctx.UNSIGNED_BYTE, null);
-    this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_MIN_FILTER, this.ctx.LINEAR);
-    this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_S, this.ctx.CLAMP_TO_EDGE);
-    this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_T, this.ctx.CLAMP_TO_EDGE);
+      this.ctx.texImage2D(this.ctx.TEXTURE_2D, 0, this.ctx.RGBA, 800, 600, 0, this.ctx.RGBA, this.ctx.UNSIGNED_BYTE, null);
+      this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_MIN_FILTER, this.ctx.LINEAR);
+      this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_S, this.ctx.CLAMP_TO_EDGE);
+      this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_T, this.ctx.CLAMP_TO_EDGE);
+    
+      // Bind the FBO and attach the texture to it
+      const fb = this.ctx.createFramebuffer();
+
+      //const renderPass = new RenderPass(this.extVAO, this.ctx, sideVSText, sideFSText);
+
+      /*let verts = new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]);
+      renderPass.setIndexBufferData(new Uint32Array([1, 0, 2, 2, 0, 3]))
+      renderPass.addAttribute("vertPosition", 2, this.ctx.FLOAT, false,
+        2 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, verts);
   
-    // Bind the FBO and attach the texture to it
-    const fb = this.ctx.createFramebuffer();
-    this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, fb);
-    this.ctx.framebufferTexture2D(this.ctx.FRAMEBUFFER, this.ctx.COLOR_ATTACHMENT0, this.ctx.TEXTURE_2D, targetTexture, 0);
-    this.ctx.clearColor(0, 0, 0, 1); // Set clear color to black
-    this.ctx.clear(this.ctx.COLOR_BUFFER_BIT);
-    return targetTexture;
-  }
+      renderPass.setDrawData(this.ctx.TRIANGLES, 6, this.ctx.UNSIGNED_INT, 0);
+      renderPass.setup();
+      renderPass.draw();*/
+
+      this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, fb);
+      this.ctx.framebufferTexture2D(this.ctx.FRAMEBUFFER, this.ctx.COLOR_ATTACHMENT0, this.ctx.TEXTURE_2D, targetTexture, 0);
+      this.ctx.clearColor(0, 0, 0, 1); // Set clear color to black
+      this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT);
+      if(targetTexture != null){
+        this.keyframeTextures.push(targetTexture);
+      }
+
+   }
+
+   private drawToTexture(): void{
+    
+
+   }
+
+
 
   private drawKeyframes(): void {
     const gl: WebGLRenderingContext = this.ctx;
-    // console.log("here");
-    // Set up an orthographic projection matrix for the preview panel
     const previewWidth = 320; // Width of the preview panel
     const previewHeight = 800; // Height of the preview panel
     const previewProjectionMatrix = Mat4.orthographic(-previewWidth / 2, previewWidth / 2, -previewHeight / 2, previewHeight / 2, -1, 1);
+  
+    // Set up a new RenderPass for drawing the keyframe textures
+    const keyframeRenderPass = new RenderPass(this.extVAO, gl,sideVSText, sideFSText);
+  
+    // Set up vertex data for a quad
+    let verts = new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]);
+    keyframeRenderPass.setIndexBufferData(new Uint32Array([1, 0, 2, 2, 0, 3]))
+    keyframeRenderPass.addAttribute("vertPosition", 2, this.ctx.FLOAT, false,
+        2 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, verts);
+      
+  
+    // Set up index buffer for quad indices
+  
+    // Set draw data for the quad
+    keyframeRenderPass.setDrawData(gl.TRIANGLES, 6, gl.UNSIGNED_INT, 0);
+  
 
-    // Render each keyframe texture as a textured quad
-    this.ctx2?.clearRect(800, 0, 320, 800);
-    gl.viewport(800, 0, 320, 800); // Set viewport for the preview panel
-    for (let i = 0; i < this.keyframeTextures.length; i++) {
-        const texture = this.keyframeTextures[i];
+    // Draw each keyframe texture vertically in the preview panel
+    let yOffset = 600;
+    const keyframes = this.getGUI().getKeyFrames();
 
-        // Set up texture and render the quad
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        // ... (your rendering code for a textured quad here)
-        // Use the previewProjectionMatrix to position the quad vertically
+    for (let i = 0; i < keyframes.length; i++) {
+      const texture = this.keyframeTextures[i];
+      gl.viewport(800, yOffset, previewWidth, 200);
+      gl.activeTexture(gl.TEXTURE0 + i);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      keyframeRenderPass.addUniform("uProjection", (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniformMatrix4fv(loc, false, new Float32Array(previewProjectionMatrix.all()));
+        
+    });
+    keyframeRenderPass.addUniform("uTexture", (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+      gl.uniform1i(loc, i);
+  });
+  keyframeRenderPass.addUniform("bColor",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+          // console.log(this.getGUI().highlight);
+          gl.uniform1f(loc, i / 4);
+
+    });
+
+  //   this.set_key_frame(keyframes[i]);
+
+  // // Render the scene to the texture
+  //   this.drawScene(800, yOffset, 320, 200);
+  
+    keyframeRenderPass.setup();
+    keyframeRenderPass.draw();
+      yOffset -= 200;
     }
-}
-
-
-
+  }
 }
 
 export function initializeCanvas(): void {

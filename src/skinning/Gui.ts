@@ -4,6 +4,7 @@ import { SkinningAnimation } from "./App.js";
 import { Mat4, Vec3, Vec4, Vec2, Mat2, Quat } from "../lib/TSM.js";
 import { Bone } from "./Scene.js";
 import { RenderPass } from "../lib/webglutils/RenderPass.js";
+import { Debugger } from "../lib/webglutils/Debugging.js";
 
 /**
  * Might be useful for designing any animation GUI
@@ -61,7 +62,6 @@ export class GUI implements IGUI {
 
   // private key_frame_one: Mat4[];
   private key_frames: Mat4[][];
-
 
   private starting_key: Mat4[];
   private starting_time: number;
@@ -406,6 +406,7 @@ export class GUI implements IGUI {
       case "KeyK": {
         // this.key_frame_one = this.animation.get_key_frame();
         this.key_frames.push(this.animation.get_key_frame());
+        this.animation.createTextureForFrame(this.animation.get_key_frame());
         break;
       }
       case "KeyY": {
@@ -531,6 +532,11 @@ export class GUI implements IGUI {
     }
   }
 
+  public getKeyFrames(){
+    return this.key_frames;
+  }
+
+
   /**
    * Registers all event listeners for the GUI
    * @param canvas The canvas being used
@@ -653,5 +659,7 @@ public updateHighlightedBone(mouseX: number, mouseY: number): number {
   this.highlight = closestBoneIndex;
   return closestBoneIndex;
 }
+
+
 
 }
