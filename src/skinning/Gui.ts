@@ -259,9 +259,7 @@ export class GUI implements IGUI {
       }
     }
     } 
-    // TODO: Add logic here:
-    // 1) To highlight a bone, if the mouse is hovering over a bone;
-    // 2) To rotate a bone, if the mouse button is pressed and currently highlighting a bone.
+
   }
   
  
@@ -353,69 +351,13 @@ export class GUI implements IGUI {
     let bone_position_world: Vec3 = this.animation.get_bone_position(bone_index);
     let bone_position_view: Vec3 = view_matrix.my_mult_vec3(bone_position_world);
     let bone_position_NDC: Vec3 = proj_matrix.my_mult_vec3(bone_position_view);
-    // console.log("bone_pos_NDC");
-    // console.log(bone_position_NDC.copy());
+
     let mouse_NDC: Vec3 = this.mouse_to_NDC_point(mouseX, mouseY);
-
-    //get translation points, in NDC
-    
-    // let old_point: Vec3 = new Vec3([bone_position_NDC.x, bone_position_NDC.y, -1]);
-    // let old_point_2: Vec3 = new Vec3([bone_position_NDC.x, bone_position_NDC.y, 0.5]);
-    // console.log("old point");
-    // console.log(old_point.copy());
     let new_point: Vec3 = new Vec3([mouse_NDC.x, mouse_NDC.y, bone_position_NDC.z]);
-    // let new_point: Vec3 = new Vec3([0.5, 0.5, -1]);
-    // console.log("new point");
-    // console.log(new_point.copy());
 
-    //conver to camera
-    // console.log("old ndc");
-    // console.log(old_point);
-    // console.log("old2 ndc");
-    // console.log(old_point_2);
-    // console.log("new ndc");
-    // console.log(new_point);
-    
-
-    // old_point = inverse_proj_matrix.my_mult_vec3(old_point);
-    // old_point_2 = inverse_proj_matrix.my_mult_vec3(old_point_2);
     new_point = inverse_proj_matrix.my_mult_vec3(new_point);
     let trans_cam: Vec3 = new Vec3();
     new_point.subtract(bone_position_view, trans_cam);
-
-    // old_point.add(trans);
-    // old_point_2.add(trans);
-    // console.log("old view");
-    // console.log(old_point);
-    // console.log("new view");
-    // console.log(new_point);
-
-    // old_point = proj_matrix.my_mult_vec3(old_point);
-    // old_point_2 = proj_matrix.my_mult_vec3(old_point_2);
-    // new_point = proj_matrix.my_mult_vec3(new_point);
-    // console.log("old ndc2");
-    // console.log(old_point);
-    // console.log("old2 ndc2");
-    // console.log(old_point_2);
-    // console.log("new ndc2");
-    // console.log(new_point);
-
-    //translation vector
-    // let translation_cam: Vec3 = new Vec3();
-    // new_point.subtract(old_point, translation_cam);
-    // console.log("translation");
-    // console.log(translation_cam);
-
-    //test
-    // let bone_pos_cam: Vec3 = this.animation.get_bone_position(bone_index);
-    // bone_pos_cam = view_matrix.my_mult_vec3(bone_pos_cam);
-    // bone_pos_cam.add(translation_cam);
-    // let bone_pos_NDC = proj_matrix.my_mult_vec3(bone_pos_cam);
-    // // console.log("bone_ndc_2_preadd");
-    // // console.log(bone_pos_NDC.copy());
-    // // bone_pos_NDC.add(translation_cam);
-    // console.log("bone_ndc_2_postadd");
-    // console.log(bone_pos_NDC.copy());
 
     //convert to world
     let translation_world = inverse_view_matrix.multiplyVec3(trans_cam);
@@ -465,11 +407,16 @@ export class GUI implements IGUI {
     }
   }
 
+  public save_texture(){
+
+  }
+
   public onKeydown(key: KeyboardEvent): void {
     switch (key.code) {
       case "KeyK": {
         // this.key_frame_one = this.animation.get_key_frame();
         this.key_frames.push(this.animation.get_key_frame());
+        this.save_texture();
         break;
       }
       case "KeyY": {
