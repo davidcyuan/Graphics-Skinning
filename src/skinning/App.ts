@@ -34,6 +34,8 @@ export class SkinningAnimation extends CanvasAnimation {
   private floor: Floor;
   private floorRenderPass: RenderPass;
   private side_bar_pass: RenderPass;
+  private test_texture: WebGLTexture;
+  private has_texture: boolean;
 
   /* Scene rendering info */
   private scene: CLoader;
@@ -77,6 +79,7 @@ export class SkinningAnimation extends CanvasAnimation {
     this.floorRenderPass = new RenderPass(this.extVAO, gl, floorVSText, floorFSText);
     // this.side_bar_pass = new RenderPass(this.extVAO, gl, side_bar_VSText, side_bar_FSText);
     this.side_bar_pass = new RenderPass(this.extVAO, gl, side_bar_VSText, side_bar_FSText);
+    this.has_texture = false;
     this.sceneRenderPass = new RenderPass(this.extVAO, gl, sceneVSText, sceneFSText);
     this.skeletonRenderPass = new RenderPass(this.extVAO, gl, skeletonVSText, skeletonFSText);
     
@@ -308,10 +311,9 @@ export class SkinningAnimation extends CanvasAnimation {
       (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
         gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.projMatrix().inverse().all()));
     });
-    this.floorRenderPass.addUniform("uViewInv",
-      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
-        gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.viewMatrix().inverse().all()));
-    });
+    this.floorRenderPass.addUniform("uViewInv",(gl: WebGLRenderingContext, loc: WebGLUniformLocation) =>
+      {gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.viewMatrix().inverse().all()));}
+    );
 
     this.floorRenderPass.setDrawData(this.ctx.TRIANGLES, this.floor.indicesFlat().length, this.ctx.UNSIGNED_INT, 0);
     this.floorRenderPass.setup();
@@ -330,6 +332,7 @@ export class SkinningAnimation extends CanvasAnimation {
       undefined,
       verts
     );
+
     this.side_bar_pass.setDrawData(this.ctx.TRIANGLES, indices.length, this.ctx.UNSIGNED_INT, 0);
     this.side_bar_pass.setup();
   }
@@ -351,16 +354,25 @@ export class SkinningAnimation extends CanvasAnimation {
 
 	//TODO: Handle mesh playback if implementing for project spec
 
-    if (this.ctx2) {
-      this.ctx2.clearRect(0, 0, this.ctx2.canvas.width, this.ctx2.canvas.height);
-      if (this.scene.meshes.length > 0) {
-        this.ctx2.fillText(this.getGUI().getModeString(), 50, 710);
-      }
-    }
+    // if (this.ctx2) {
+    //   this.ctx2.clearRect(0, 0, this.ctx2.canvas.width, this.ctx2.canvas.height);
+    //   if (this.scene.meshes.length > 0) {
+    //     this.ctx2.fillText(this.getGUI().getModeString(), 50, 710);
+    //   }
+    // }
 
     // Drawing
     const gl: WebGLRenderingContext = this.ctx;
     const bg: Vec4 = this.backgroundColor;
+
+    // this.draw_texture();
+    // gl.clearColor(bg.r, bg.g, bg.b, bg.a);
+    // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    // gl.enable(gl.CULL_FACE);
+    // gl.enable(gl.DEPTH_TEST);
+    // gl.frontFace(gl.CCW);
+    // gl.cullFace(gl.BACK);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.clearColor(bg.r, bg.g, bg.b, bg.a);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.CULL_FACE);
@@ -368,9 +380,14 @@ export class SkinningAnimation extends CanvasAnimation {
     gl.frontFace(gl.CCW);
     gl.cullFace(gl.BACK);
 
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null); // null is the default frame buffer
-    this.drawScene(0, 200, 800, 600); 
-    this.draw_triangle();   
+
+    // gl.bindFramebuffer(gl.FRAMEBUFFER, null); // null is the default frame buffer
+    // this.drawScene(0, 200, 800, 600); 
+    this.drawScene(0, 200, 300, 200); 
+    if(this.has_texture){
+      this.draw_draw_texture();
+    }
+      
 
     /* Draw status bar */
     if (this.scene.meshes.length > 0) {
@@ -383,7 +400,9 @@ export class SkinningAnimation extends CanvasAnimation {
   public draw_texture(){
     const gl: WebGLRenderingContext = this.ctx;
 
-    // const gl: WebGLRenderingContext = this.ctx;
+    const fb = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+
     const targetTextureWidth = 300;
     const targetTextureHeight = 200;
     const targetTexture = gl.createTexture();
@@ -403,40 +422,26 @@ export class SkinningAnimation extends CanvasAnimation {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-    const fb = gl.createFramebuffer();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-
     const attachmentPoint = gl.COLOR_ATTACHMENT0;
-    gl.framebufferTexture2D(
-      gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, targetTexture, level);
-
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, targetTexture, level);
     const depthBuffer = gl.createRenderbuffer();
     gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
     gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, targetTextureWidth, targetTextureHeight);
     gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
-
-
-
-
-/////////////////////////////////////////////////////////
-
-
-    if (this.ctx2) {
-      this.ctx2.clearRect(0, 0, this.ctx2.canvas.width, this.ctx2.canvas.height);
-      if (this.scene.meshes.length > 0) {
-        this.ctx2.fillText(this.getGUI().getModeString(), 50, 710);
-      }
-    }
     
     const bg: Vec4 = this.backgroundColor;
-    gl.clearColor(bg.r, bg.g, bg.b, bg.a);
+    gl.clearColor(0.0, 0.0, 0.0, bg.a);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
     gl.frontFace(gl.CCW);
     gl.cullFace(gl.BACK);
+
+
     this.drawScene(0, 0, targetTextureWidth, targetTextureHeight); 
 
+    this.test_texture = targetTexture;
+    this.has_texture = true;
     return targetTexture;
   }
 
@@ -451,13 +456,20 @@ export class SkinningAnimation extends CanvasAnimation {
       this.sceneRenderPass.draw();
       gl.disable(gl.DEPTH_TEST);
       this.skeletonRenderPass.draw();
-	  //TODO: Add functionality for drawing the highlighted bone when necessary
       gl.enable(gl.DEPTH_TEST);      
     }
   }
-  public draw_triangle(){
-    // console.log("drawing triangle");
+  public draw_draw_texture(){
+    console.log("draw draw");
     const gl: WebGLRenderingContext = this.ctx;
+
+    if(this.has_texture){
+      this.side_bar_pass.addTexture(this.test_texture);
+    }
+
+    // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+
     gl.viewport(800, 600, 320, 200);
     gl.disable(gl.DEPTH_TEST);
     this.side_bar_pass.draw();

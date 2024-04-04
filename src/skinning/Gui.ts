@@ -79,7 +79,7 @@ export class GUI implements IGUI {
   constructor(canvas: HTMLCanvasElement, animation: SkinningAnimation) {
     this.height = canvas.height;
     this.viewPortHeight = this.height - 200;
-    this.width = canvas.width;
+    this.width = canvas.width - 320;
     this.prevX = 0;
     this.prevY = 0;
     this.highlight = -1.0;

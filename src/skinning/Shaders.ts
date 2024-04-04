@@ -202,16 +202,21 @@ export const side_bar_VSText = `
    
 precision mediump float;
 attribute vec4 aVertPos;
+varying vec2 v_texcoord;
 
 void main() {
     gl_Position = aVertPos;
+    v_texcoord = vec2(0.5, 0.5);
 }
 `;
 
 export const side_bar_FSText = `
 precision mediump float;
+uniform sampler2D u_texture;
+varying vec2 v_texcoord;
 
     void main () {
-    gl_FragColor = vec4(1, 0, 0, 1);
+    // gl_FragColor = vec4(1, 0, 0, 1);
+    gl_FragColor = texture2D(u_texture, v_texcoord);
     }
 `;

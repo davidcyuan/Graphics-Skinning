@@ -141,6 +141,8 @@ export class RenderPass {
     this.uniforms.forEach(uniform => {
       uniform.bindFunction(gl, uniform.location);
     });
+    this.bind_texture_uniform();
+    
     if (this.textureMapped) {
       gl.bindTexture(gl.TEXTURE_2D, this.texture);
     }
@@ -157,9 +159,13 @@ export class RenderPass {
     this.drawOffset = drawOffset;
   }
 
-  public addUniform(name: string,
-                    bindFunction: (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => void) {
+  public addUniform(name: string, bindFunction: (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => void){
     this.uniforms.set(name, new Uniform(0, bindFunction));
+  }
+  private bind_texture_uniform(): void{
+    const gl: WebGLRenderingContext = this.ctx;
+    var textureLocation = gl.getUniformLocation(this.shaderProgram, "u_texture");
+    gl.uniform1i(textureLocation, 0);
   }
 
   public setIndexBufferData(data: Uint32Array) {
