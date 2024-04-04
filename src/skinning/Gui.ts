@@ -68,6 +68,8 @@ export class GUI implements IGUI {
   private animating: boolean;
   private ending_key_index: number;
 
+  private test_texture;
+
   /**
    *
    * @param canvas required to get the width and height of the canvas
@@ -407,20 +409,24 @@ export class GUI implements IGUI {
     }
   }
 
-  public save_texture(){
 
-  }
 
   public onKeydown(key: KeyboardEvent): void {
     switch (key.code) {
       case "KeyK": {
         // this.key_frame_one = this.animation.get_key_frame();
         this.key_frames.push(this.animation.get_key_frame());
-        this.save_texture();
+        // this.save_texture();
         break;
       }
       case "KeyY": {
-        this.animation.set_key_frame(this.key_frames[0]);
+        this.test_texture = this.animation.draw_texture();
+        break;
+      }
+      case "KeyU": {
+        //draw test_texture;
+        // this.animation.draw_triangle();
+        // this.animation.drawKeyframes();
         break;
       }
       case "KeyP": {
@@ -589,10 +595,6 @@ export class GUI implements IGUI {
     const x = (2 * mouseX) / this.width - 1;
     const y = 1 - (2 * mouseY) / this.viewPortHeight;
     return new Vec3([x, y, -1]);
-    // const mouseNormal = new Vec4([x, y, -1, 1]);
-    // const mouseCamera = this.projMatrix().inverse().multiplyVec4(mouseNormal);
-    // mouseCamera.scale(1 / mouseCamera.w);
-    // return new Vec3([mouseCamera.x, mouseCamera.y, mouseCamera.z]);
   }
 
   public intersectCylinder(bone: Bone, cameraPosition: Vec3, rayDirection: Vec3) {

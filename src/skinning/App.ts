@@ -14,8 +14,8 @@ import {
   skeletonVSText,
   sBackVSText,
   sBackFSText,
-  sideVSText, 
-  sideFSText
+  side_bar_VSText, 
+  side_bar_FSText,
 
 } from "./Shaders.js";
 import { Mat4, Vec4, Vec3, Quat} from "../lib/TSM.js";
@@ -33,6 +33,7 @@ export class SkinningAnimation extends CanvasAnimation {
   /* Floor Rendering Info */
   private floor: Floor;
   private floorRenderPass: RenderPass;
+  private side_bar_pass: RenderPass;
 
   /* Scene rendering info */
   private scene: CLoader;
@@ -40,6 +41,7 @@ export class SkinningAnimation extends CanvasAnimation {
 
   /* Skeleton rendering info */
   private skeletonRenderPass: RenderPass;
+  
 
 
   /* Scrub bar background rendering info */
@@ -50,8 +52,8 @@ export class SkinningAnimation extends CanvasAnimation {
   private backgroundColor: Vec4;
 
   /* Keyframe info */
-  private sideBarPass: RenderPass;
-  private keyframeTextures: WebGLTexture[] = [];
+  
+  // private keyframeTextures: WebGLTexture[] = [];
 
   private canvas2d: HTMLCanvasElement;
   private ctx2: CanvasRenderingContext2D | null;
@@ -73,9 +75,11 @@ export class SkinningAnimation extends CanvasAnimation {
     this.floor = new Floor();
 
     this.floorRenderPass = new RenderPass(this.extVAO, gl, floorVSText, floorFSText);
+    // this.side_bar_pass = new RenderPass(this.extVAO, gl, side_bar_VSText, side_bar_FSText);
+    this.side_bar_pass = new RenderPass(this.extVAO, gl, side_bar_VSText, side_bar_FSText);
     this.sceneRenderPass = new RenderPass(this.extVAO, gl, sceneVSText, sceneFSText);
     this.skeletonRenderPass = new RenderPass(this.extVAO, gl, skeletonVSText, skeletonFSText);
-    this.sideBarPass = new RenderPass(this.extVAO, gl, sideVSText, sideFSText);
+    
 
 	//TODO: Add in other rendering initializations for other shaders such as bone highlighting
 
@@ -84,6 +88,7 @@ export class SkinningAnimation extends CanvasAnimation {
     this.backgroundColor = new Vec4([0.0, 0.37254903, 0.37254903, 1.0]);
 
     this.initFloor();
+    this.init_side_bar();
     this.scene = new CLoader("");
 
     // Status bar
@@ -312,6 +317,22 @@ export class SkinningAnimation extends CanvasAnimation {
     this.floorRenderPass.setup();
   }
 
+  public init_side_bar(){
+    let indices: Uint32Array = new Uint32Array([0,1,2, 0,2,3]);
+    this.side_bar_pass.setIndexBufferData(indices);
+    let verts = new Float32Array([1.0,1.0,0.0,1.0, -1.0,1.0,0.0,1.0, -1.0,-1.0,0.0,1.0, 1.0,-1.0,0.0,1.0]);
+    this.side_bar_pass.addAttribute("aVertPos",
+      4,
+      this.ctx.FLOAT,
+      false,
+      4 * Float32Array.BYTES_PER_ELEMENT,
+      0,
+      undefined,
+      verts
+    );
+    this.side_bar_pass.setDrawData(this.ctx.TRIANGLES, indices.length, this.ctx.UNSIGNED_INT, 0);
+    this.side_bar_pass.setup();
+  }
 
   /** @internal
    * Draws a single frame
@@ -349,7 +370,7 @@ export class SkinningAnimation extends CanvasAnimation {
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null); // null is the default frame buffer
     this.drawScene(0, 200, 800, 600); 
-    this.drawKeyframes();   
+    this.draw_triangle();   
 
     /* Draw status bar */
     if (this.scene.meshes.length > 0) {
@@ -357,6 +378,66 @@ export class SkinningAnimation extends CanvasAnimation {
       this.sBackRenderPass.draw();      
     }    
 
+  }
+
+  public draw_texture(){
+    const gl: WebGLRenderingContext = this.ctx;
+
+    // const gl: WebGLRenderingContext = this.ctx;
+    const targetTextureWidth = 300;
+    const targetTextureHeight = 200;
+    const targetTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+
+    const level = 0;
+    const internalFormat = gl.RGBA;
+    const border = 0;
+    const format = gl.RGBA;
+    const type = gl.UNSIGNED_BYTE;
+    const data = null;
+    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                  targetTextureWidth, targetTextureHeight, border,
+                  format, type, data);
+    // set the filtering so we don't need mips
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    const fb = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+
+    const attachmentPoint = gl.COLOR_ATTACHMENT0;
+    gl.framebufferTexture2D(
+      gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, targetTexture, level);
+
+    const depthBuffer = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, targetTextureWidth, targetTextureHeight);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
+
+
+
+
+/////////////////////////////////////////////////////////
+
+
+    if (this.ctx2) {
+      this.ctx2.clearRect(0, 0, this.ctx2.canvas.width, this.ctx2.canvas.height);
+      if (this.scene.meshes.length > 0) {
+        this.ctx2.fillText(this.getGUI().getModeString(), 50, 710);
+      }
+    }
+    
+    const bg: Vec4 = this.backgroundColor;
+    gl.clearColor(bg.r, bg.g, bg.b, bg.a);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.CULL_FACE);
+    gl.enable(gl.DEPTH_TEST);
+    gl.frontFace(gl.CCW);
+    gl.cullFace(gl.BACK);
+    this.drawScene(0, 0, targetTextureWidth, targetTextureHeight); 
+
+    return targetTexture;
   }
 
   private drawScene(x: number, y: number, width: number, height: number): void {
@@ -374,6 +455,14 @@ export class SkinningAnimation extends CanvasAnimation {
       gl.enable(gl.DEPTH_TEST);      
     }
   }
+  public draw_triangle(){
+    // console.log("drawing triangle");
+    const gl: WebGLRenderingContext = this.ctx;
+    gl.viewport(800, 600, 320, 200);
+    gl.disable(gl.DEPTH_TEST);
+    this.side_bar_pass.draw();
+    gl.enable(gl.DEPTH_TEST); 
+  }
 
   public getGUI(): GUI {
     return this.gui;
@@ -389,100 +478,9 @@ export class SkinningAnimation extends CanvasAnimation {
     this.scene.load(() => this.initScene());
   }
 
-  public createTextureForFrame(keyframe: Mat4[]){
-    const targetTexture = this.ctx.createTexture();
-      this.ctx.bindTexture(this.ctx.TEXTURE_2D, targetTexture);
-  
-      this.ctx.texImage2D(this.ctx.TEXTURE_2D, 0, this.ctx.RGBA, 800, 600, 0, this.ctx.RGBA, this.ctx.UNSIGNED_BYTE, null);
-      this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_MIN_FILTER, this.ctx.LINEAR);
-      this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_S, this.ctx.CLAMP_TO_EDGE);
-      this.ctx.texParameteri(this.ctx.TEXTURE_2D, this.ctx.TEXTURE_WRAP_T, this.ctx.CLAMP_TO_EDGE);
-    
-      // Bind the FBO and attach the texture to it
-      const fb = this.ctx.createFramebuffer();
-
-      //const renderPass = new RenderPass(this.extVAO, this.ctx, sideVSText, sideFSText);
-
-      /*let verts = new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]);
-      renderPass.setIndexBufferData(new Uint32Array([1, 0, 2, 2, 0, 3]))
-      renderPass.addAttribute("vertPosition", 2, this.ctx.FLOAT, false,
-        2 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, verts);
-  
-      renderPass.setDrawData(this.ctx.TRIANGLES, 6, this.ctx.UNSIGNED_INT, 0);
-      renderPass.setup();
-      renderPass.draw();*/
-
-      this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, fb);
-      this.ctx.framebufferTexture2D(this.ctx.FRAMEBUFFER, this.ctx.COLOR_ATTACHMENT0, this.ctx.TEXTURE_2D, targetTexture, 0);
-      this.ctx.clearColor(0, 0, 0, 1); // Set clear color to black
-      this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT);
-      if(targetTexture != null){
-        this.keyframeTextures.push(targetTexture);
-      }
-
-   }
-
    private drawToTexture(): void{
 
    }
-
-
-
-  private drawKeyframes(): void {
-    const gl: WebGLRenderingContext = this.ctx;
-    const previewWidth = 320; // Width of the preview panel
-    const previewHeight = 800; // Height of the preview panel
-    const previewProjectionMatrix = Mat4.orthographic(-previewWidth / 2, previewWidth / 2, -previewHeight / 2, previewHeight / 2, -1, 1);
-  
-    // Set up a new RenderPass for drawing the keyframe textures
-    const keyframeRenderPass = new RenderPass(this.extVAO, gl,sideVSText, sideFSText);
-  
-    // Set up vertex data for a quad
-    let verts = new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]);
-    keyframeRenderPass.setIndexBufferData(new Uint32Array([1, 0, 2, 2, 0, 3]))
-    keyframeRenderPass.addAttribute("vertPosition", 2, this.ctx.FLOAT, false,
-        2 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, verts);
-      
-  
-    // Set up index buffer for quad indices
-  
-    // Set draw data for the quad
-    keyframeRenderPass.setDrawData(gl.TRIANGLES, 6, gl.UNSIGNED_INT, 0);
-  
-
-    // Draw each keyframe texture vertically in the preview panel
-    let yOffset = 600;
-    const keyframes = this.getGUI().getKeyFrames();
-
-    for (let i = 0; i < keyframes.length; i++) {
-      const texture = this.keyframeTextures[i];
-      gl.viewport(800, yOffset, previewWidth, 200);
-      gl.activeTexture(gl.TEXTURE0 + i);
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      keyframeRenderPass.addUniform("uProjection", (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
-        gl.uniformMatrix4fv(loc, false, new Float32Array(previewProjectionMatrix.all()));
-        
-    });
-    keyframeRenderPass.addUniform("uTexture", (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
-      gl.uniform1i(loc, i);
-  });
-  keyframeRenderPass.addUniform("bColor",
-      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
-          // console.log(this.getGUI().highlight);
-          gl.uniform1f(loc, i / 4);
-
-    });
-
-  //   this.set_key_frame(keyframes[i]);
-
-  // // Render the scene to the texture
-  //   this.drawScene(800, yOffset, 320, 200);
-  
-    keyframeRenderPass.setup();
-    keyframeRenderPass.draw();
-      yOffset -= 200;
-    }
-  }
 }
 
 export function initializeCanvas(): void {

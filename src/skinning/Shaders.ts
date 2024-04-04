@@ -198,35 +198,20 @@ export const sBackFSText = `
 
 `;
 
-export const sideVSText = `
+export const side_bar_VSText = `
    
 precision mediump float;
-uniform float bColor;
-
-attribute vec2 vertPosition;
-
-varying vec2 uv;
-
-varying float color;
-
-
+attribute vec4 aVertPos;
 
 void main() {
-    color = bColor;
-    gl_Position = vec4(vertPosition, 0.0, 1.0);
-    uv = vertPosition;
-    uv.x = (1.0 + uv.x) / 2.0;
-    uv.y = (1.0 + uv.y) / 2.0;
+    gl_Position = aVertPos;
 }
 `;
 
-export const sideFSText = `
+export const side_bar_FSText = `
 precision mediump float;
 
-    varying vec2 uv;
-    varying float color;
-
     void main () {
-            gl_FragColor = vec4(color, 0, 0, 1);
+    gl_FragColor = vec4(1, 0, 0, 1);
     }
 `;
