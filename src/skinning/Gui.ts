@@ -4,7 +4,6 @@ import { SkinningAnimation } from "./App.js";
 import { Mat4, Vec3, Vec4, Vec2, Mat2, Quat } from "../lib/TSM.js";
 import { Bone } from "./Scene.js";
 import { RenderPass } from "../lib/webglutils/RenderPass.js";
-import { Debugger } from "../lib/webglutils/Debugging.js";
 
 /**
  * Might be useful for designing any animation GUI
@@ -79,7 +78,7 @@ export class GUI implements IGUI {
   constructor(canvas: HTMLCanvasElement, animation: SkinningAnimation) {
     this.height = canvas.height;
     this.viewPortHeight = this.height - 200;
-    this.width = canvas.width - 320;
+    this.width = canvas.width;
     this.prevX = 0;
     this.prevY = 0;
     this.highlight = -1.0;
@@ -414,19 +413,8 @@ export class GUI implements IGUI {
   public onKeydown(key: KeyboardEvent): void {
     switch (key.code) {
       case "KeyK": {
-        // this.key_frame_one = this.animation.get_key_frame();
         this.key_frames.push(this.animation.get_key_frame());
-        // this.save_texture();
-        break;
-      }
-      case "KeyY": {
-        this.test_texture = this.animation.draw_texture();
-        break;
-      }
-      case "KeyU": {
-        //draw test_texture;
-        // this.animation.draw_triangle();
-        // this.animation.drawKeyframes();
+        this.animation.draw_to_texture();
         break;
       }
       case "KeyP": {
@@ -440,30 +428,37 @@ export class GUI implements IGUI {
         break;
       }
       case "Digit1": {
+        this.animation.reset();
         this.animation.setScene("./static/assets/skinning/split_cube.dae");
         break;
       }
       case "Digit2": {
+        this.animation.reset();
         this.animation.setScene("./static/assets/skinning/long_cubes.dae");
         break;
       }
       case "Digit3": {
+        this.animation.reset();
         this.animation.setScene("./static/assets/skinning/simple_art.dae");
         break;
       }      
       case "Digit4": {
+        this.animation.reset();
         this.animation.setScene("./static/assets/skinning/mapped_cube.dae");
         break;
       }
       case "Digit5": {
+        this.animation.reset();
         this.animation.setScene("./static/assets/skinning/robot.dae");
         break;
       }
       case "Digit6": {
+        this.animation.reset();
         this.animation.setScene("./static/assets/skinning/head.dae");
         break;
       }
       case "Digit7": {
+        this.animation.reset();
         this.animation.setScene("./static/assets/skinning/wolf.dae");
         break;
       }
@@ -524,13 +519,7 @@ export class GUI implements IGUI {
       case "ArrowDown": {
         this.camera.offset(this.camera.up().negate(), GUI.zoomSpeed, true);
         break;
-      }
-      case "KeyK": {
-        if (this.mode === Mode.edit) {
-		//TODO: Add keyframes if required by project spec
-        }
-        break;
-      }      
+      }  
       // case "KeyP": {
       //   if (this.mode === Mode.edit && this.getNumKeyFrames() > 1)
       //   {

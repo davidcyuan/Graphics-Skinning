@@ -202,11 +202,15 @@ export const side_bar_VSText = `
    
 precision mediump float;
 attribute vec4 aVertPos;
+attribute vec2 a_texcoord;
+
 varying vec2 v_texcoord;
 
 void main() {
     gl_Position = aVertPos;
-    v_texcoord = vec2(0.5, 0.5);
+    // vec2 tester = a_texcoord;
+    // v_texcoord = vec2(0.5, 0.5);
+    v_texcoord = a_texcoord;
 }
 `;
 
