@@ -13,7 +13,12 @@ Bone Rotation:
 Skinning:
   As specified in the assignment page.
 
-Extra credit:  but also translation of the root joints.
+Animation: As specified.
+Preview: As specified, no scrolling.
+Management: As specified
+
+Extra credit: Translation of bones
+Only translate from root point, and not animated.
 
 Extra Credit Character Model with rigging and skinning: 
 if digit 8 is clicked on the keyboard, the alien model will be displayed and the user can do bone rotations and translations on this figure.
