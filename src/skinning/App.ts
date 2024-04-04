@@ -38,6 +38,8 @@ export class SkinningAnimation extends CanvasAnimation {
   // private test_texture: WebGLTexture;
   // private has_texture: boolean;
   private textures: WebGLTexture[];
+  private side_bar_index: number;
+  private side_bar_highlight: number;
 
   /* Scene rendering info */
   private scene: CLoader;
@@ -45,8 +47,6 @@ export class SkinningAnimation extends CanvasAnimation {
 
   /* Skeleton rendering info */
   private skeletonRenderPass: RenderPass;
-  
-
 
   /* Scrub bar background rendering info */
   private sBackRenderPass: RenderPass;
@@ -75,9 +75,12 @@ export class SkinningAnimation extends CanvasAnimation {
     this.floor = new Floor();
 
     this.floorRenderPass = new RenderPass(this.extVAO, gl, floorVSText, floorFSText);
+
     this.side_bar_pass = new RenderPass(this.extVAO, gl, side_bar_VSText, side_bar_FSText);
-    // this.has_texture = false;
     this.textures = [];
+    this.side_bar_index = -1;
+    this.side_bar_highlight = 0;
+
     this.sceneRenderPass = new RenderPass(this.extVAO, gl, sceneVSText, sceneFSText);
     this.skeletonRenderPass = new RenderPass(this.extVAO, gl, skeletonVSText, skeletonFSText);
     
@@ -134,6 +137,8 @@ export class SkinningAnimation extends CanvasAnimation {
       this.gui.reset();
       this.setScene(this.loadedScene);
       this.textures = [];
+      this.side_bar_index = -1;
+      this.side_bar_highlight = 0;
   }
 
   public initGui(): void {
@@ -341,6 +346,11 @@ export class SkinningAnimation extends CanvasAnimation {
       undefined,
       a_texcoords
     );
+    this.side_bar_pass.addUniform("highlight",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniform1f(loc, this.side_bar_highlight);
+    });
+
 
     this.side_bar_pass.setDrawData(this.ctx.TRIANGLES, indices.length, this.ctx.UNSIGNED_INT, 0);
     this.side_bar_pass.setup();
@@ -394,7 +404,7 @@ export class SkinningAnimation extends CanvasAnimation {
 
   }
 
-  public draw_to_texture(){
+  public draw_to_texture(index: number){
     const gl: WebGLRenderingContext = this.ctx;
 
     const fb = gl.createFramebuffer();
@@ -439,8 +449,28 @@ export class SkinningAnimation extends CanvasAnimation {
 
     // this.test_texture = targetTexture;
     // this.has_texture = true;
-    this.textures.push(targetTexture);
+    if(this.textures.length <= index + 0.1){
+      this.textures.push(targetTexture);
+    }
+    else{
+      this.textures[index] = targetTexture;
+    }
     return targetTexture;
+  }
+
+  public delete_texture(){
+    if(this.side_bar_index < this.textures.length + 0.1){
+      let new_textures: WebGLTexture[] = [];
+      for(var index = 0; index < this.textures.length; index++){
+        if(Math.abs(index - this.side_bar_index) < 0.1){
+
+        }
+        else{
+          new_textures.push(this.textures[index]);
+        }
+      }
+      this.textures = new_textures;
+    }
   }
 
   private drawScene(x: number, y: number, width: number, height: number): void {
@@ -458,10 +488,13 @@ export class SkinningAnimation extends CanvasAnimation {
     }
   }
   public draw_texture(){
-    console.log("draw draw");
     const gl: WebGLRenderingContext = this.ctx;
 
     for(var texture_i = 0; texture_i < this.textures.length; texture_i++){
+      if(Math.abs(this.side_bar_index - texture_i) < 0.1){
+        this.side_bar_highlight = 1;
+      }
+
       this.side_bar_pass.addTexture(this.textures[texture_i]);
       let start_x = 800;
       let start_y = 600 - 200*texture_i;
@@ -472,7 +505,13 @@ export class SkinningAnimation extends CanvasAnimation {
       gl.disable(gl.DEPTH_TEST);
       this.side_bar_pass.draw();
       gl.enable(gl.DEPTH_TEST);
+
+      this.side_bar_highlight = 0;
     }
+  }
+
+  public set_bar_index(index: number){
+    this.side_bar_index = index;
   }
   public getGUI(): GUI {
     return this.gui;
@@ -492,7 +531,7 @@ export class SkinningAnimation extends CanvasAnimation {
 export function initializeCanvas(): void {
   const canvas = document.getElementById("glCanvas") as HTMLCanvasElement;
   /* Start drawing */
-  canvas.width += 320;
+  // canvas.width += 320;
   const canvasAnimation: SkinningAnimation = new SkinningAnimation(canvas);
   canvasAnimation.start();
   canvasAnimation.setScene("./static/assets/skinning/split_cube.dae");

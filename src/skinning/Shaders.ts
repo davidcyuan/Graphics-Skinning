@@ -204,6 +204,7 @@ precision mediump float;
 attribute vec4 aVertPos;
 attribute vec2 a_texcoord;
 
+
 varying vec2 v_texcoord;
 
 void main() {
@@ -219,8 +220,13 @@ precision mediump float;
 uniform sampler2D u_texture;
 varying vec2 v_texcoord;
 
+uniform float highlight;
+
     void main () {
     // gl_FragColor = vec4(1, 0, 0, 1);
-    gl_FragColor = texture2D(u_texture, v_texcoord);
+    vec4 color = texture2D(u_texture, v_texcoord);
+    float difference = (1.0 - color.y) * highlight;
+    float new_yellow = color.y + difference/2.0;
+    gl_FragColor = vec4(color.x, new_yellow, color.z, color.w);
     }
 `;

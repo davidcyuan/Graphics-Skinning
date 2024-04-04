@@ -4,6 +4,7 @@ import { SkinningAnimation } from "./App.js";
 import { Mat4, Vec3, Vec4, Vec2, Mat2, Quat } from "../lib/TSM.js";
 import { Bone } from "./Scene.js";
 import { RenderPass } from "../lib/webglutils/RenderPass.js";
+import { side_bar_VSText } from "./Shaders.js";
 
 /**
  * Might be useful for designing any animation GUI
@@ -67,7 +68,8 @@ export class GUI implements IGUI {
   private animating: boolean;
   private ending_key_index: number;
 
-  private test_texture;
+  private side_bar_index;
+  
 
   /**
    *
@@ -78,7 +80,7 @@ export class GUI implements IGUI {
   constructor(canvas: HTMLCanvasElement, animation: SkinningAnimation) {
     this.height = canvas.height;
     this.viewPortHeight = this.height - 200;
-    this.width = canvas.width;
+    this.width = canvas.width - 320;
     this.prevX = 0;
     this.prevY = 0;
     this.highlight = -1.0;
@@ -90,6 +92,8 @@ export class GUI implements IGUI {
     this.starting_time = -1;
     this.animating = false;
     this.ending_key_index = -1;
+
+    this.side_bar_index = -1;
     
     this.reset();
     
@@ -171,19 +175,47 @@ export class GUI implements IGUI {
    * @param mouse
    */
   public dragStart(mouse: MouseEvent): void {
-    if (mouse.offsetY > 600) {
-      // outside the main panel
-      return;
+    let x = mouse.offsetX;
+    let y = mouse.offsetY;
+    if(x > 800){
+      // console.log(x + " " + y);
+      if(y < 200){
+        // console.log(0);
+        this.side_bar_index = 0;
+        this.animation.set_bar_index(0);
+      }
+      else if(y > 200 && y < 400){
+        // console.log(1);
+        this.side_bar_index = 1;
+        this.animation.set_bar_index(1);
+      }
+      else if(y > 400 && y < 600){
+        // console.log(2);
+        this.side_bar_index = 2;
+        this.animation.set_bar_index(2);
+      }
+      else if(y > 600 && y < 800){
+        // console.log(3);
+        this.side_bar_index = 3;
+        this.animation.set_bar_index(3);
+      }
     }
-	
-    this.updateHighlightedBone(mouse.offsetX, mouse.offsetY);
-    if(this.selectedBone > -0.5){
-      this.boneDragging = true;
-    }
+    else{
+      if (mouse.offsetY > 600) {
+        // outside the main panel
+        return;
+      }
+      
     
-    this.dragging = true;
-    this.prevX = mouse.screenX;
-    this.prevY = mouse.screenY;
+      this.updateHighlightedBone(mouse.offsetX, mouse.offsetY);
+      if(this.selectedBone > -0.5){
+        this.boneDragging = true;
+      }
+      
+      this.dragging = true;
+      this.prevX = mouse.screenX;
+      this.prevY = mouse.screenY;
+    }
   }
 
   public incrementTime(dT: number): void {
@@ -206,61 +238,60 @@ export class GUI implements IGUI {
   public drag(mouse: MouseEvent): void {
     let x = mouse.offsetX;
     let y = mouse.offsetY;
-    
-    if(this.dragging == false && this.boneDragging == false){
-      this.selectedBone = this.updateHighlightedBone(x, y);
-    }
 
-    if (this.dragging) {
-      if(this.boneDragging){
-        if(mouse.buttons == 1){
-          this.rotate_bone(this.selectedBone, x, y);
-        }
-        else if(mouse.buttons == 2){
-          //translate bone
-          this.trans_bone(this.selectedBone, x, y);
-        }
-      }
-      else{
-      const dx = mouse.screenX - this.prevX;
-      const dy = mouse.screenY - this.prevY;
-      this.prevX = mouse.screenX;
-      this.prevY = mouse.screenY;
-
-      /* Left button, or primary button */
-      const mouseDir: Vec3 = this.camera.right();
-      mouseDir.scale(-dx);
-      mouseDir.add(this.camera.up().scale(dy));
-      mouseDir.normalize();
-
-      if (dx === 0 && dy === 0) {
-        return;
+      if(this.dragging == false && this.boneDragging == false){
+        this.selectedBone = this.updateHighlightedBone(x, y);
       }
 
-      switch (mouse.buttons) {
-        case 1: {
-          let rotAxis: Vec3 = Vec3.cross(this.camera.forward(), mouseDir);
-          rotAxis = rotAxis.normalize();
-
-          if (this.fps) {
-            this.camera.rotate(rotAxis, GUI.rotationSpeed);
-          } else {
-            this.camera.orbitTarget(rotAxis, GUI.rotationSpeed);
+      if (this.dragging) {
+        if(this.boneDragging){
+          if(mouse.buttons == 1){
+            this.rotate_bone(this.selectedBone, x, y);
           }
-          break;
+          else if(mouse.buttons == 2){
+            //translate bone
+            this.trans_bone(this.selectedBone, x, y);
+          }
         }
-        case 2: {
-          /* Right button, or secondary button */
-          this.camera.offsetDist(Math.sign(mouseDir.y) * GUI.zoomSpeed);
-          break;
-        }
-        default: {
-          break;
-        }
-      }
-    }
-    } 
+        else{
+          const dx = mouse.screenX - this.prevX;
+          const dy = mouse.screenY - this.prevY;
+          this.prevX = mouse.screenX;
+          this.prevY = mouse.screenY;
 
+          /* Left button, or primary button */
+          const mouseDir: Vec3 = this.camera.right();
+          mouseDir.scale(-dx);
+          mouseDir.add(this.camera.up().scale(dy));
+          mouseDir.normalize();
+
+          if (dx === 0 && dy === 0) {
+            return;
+          }
+
+          switch (mouse.buttons) {
+            case 1: {
+              let rotAxis: Vec3 = Vec3.cross(this.camera.forward(), mouseDir);
+              rotAxis = rotAxis.normalize();
+
+              if (this.fps) {
+                this.camera.rotate(rotAxis, GUI.rotationSpeed);
+              } else {
+                this.camera.orbitTarget(rotAxis, GUI.rotationSpeed);
+              }
+              break;
+            }
+            case 2: {
+              /* Right button, or secondary button */
+              this.camera.offsetDist(Math.sign(mouseDir.y) * GUI.zoomSpeed);
+              break;
+            }
+            default: {
+              break;
+            }
+          }
+        }
+      } 
   }
   
  
@@ -414,7 +445,37 @@ export class GUI implements IGUI {
     switch (key.code) {
       case "KeyK": {
         this.key_frames.push(this.animation.get_key_frame());
-        this.animation.draw_to_texture();
+        this.animation.draw_to_texture(this.key_frames.length);
+        break;
+      }
+      case "Equal": {
+        if(this.key_frames.length > 0){
+          this.animation.set_key_frame(this.key_frames[this.side_bar_index]);
+        }
+        break;
+      }
+      case "KeyU": {
+        if(this.side_bar_index < this.key_frames.length + 0.1){
+          this.key_frames[this.side_bar_index] = this.animation.get_key_frame();
+          this.animation.draw_to_texture(this.side_bar_index);
+        }
+        break;
+      }
+      case "Delete": {
+        if(this.side_bar_index < this.key_frames.length + 0.1){
+          let new_key_frames: Mat4[][] = [];
+          for(var index = 0; index < this.key_frames.length; index++){
+            if(Math.abs(index - this.side_bar_index) < 0.1){
+
+            }
+            else{
+              new_key_frames.push(this.key_frames[index]);
+            }
+          }
+          this.key_frames = new_key_frames;
+        }
+
+        this.animation.delete_texture();
         break;
       }
       case "KeyP": {
