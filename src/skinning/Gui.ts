@@ -515,6 +515,10 @@ export class GUI implements IGUI {
         this.animation.setScene("./static/assets/skinning/wolf.dae");
         break;
       }
+      case "Digit8": {
+        this.animation.setScene("./static/assets/skinning/lego.dae");
+        break;
+      }
       case "KeyW": {
         this.camera.offset(
             this.camera.forward().negate(),

@@ -12,3 +12,8 @@ Bone Rotation:
 
 Skinning:
   As specified in the assignment page.
+
+Extra Credit: 
+Character rig found from https://www.turbosquid.com/3d-models/free-funny-alien-rigged-3d-model/904203
+- 107 bones
+- 26,756 Polygons
